@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   MotionGrid Technologies — Design Tokens
+   Palette: obsidian black + brushed chrome + a single signal-orange accent,
+   drawn directly from the wordmark. Restraint is the point: chrome carries
+   the elegance, orange only ever marks one live/active thing at a time.
+   ========================================================================== */
+
+@theme inline {
+  /* Surfaces */
+  --color-obsidian: #08090a;
+  --color-obsidian-soft: #0c0d0f;
+  --color-graphite: #131418;
+  --color-graphite-high: #1b1c21;
+  --color-hairline: #2a2c31;
+  --color-hairline-soft: #1e2024;
+
+  /* Chrome (text + metal) */
+  --color-chrome-100: #f4f5f6;
+  --color-chrome-200: #dfe1e4;
+  --color-chrome-300: #b9bcc3;
+  --color-chrome-500: #8a8e96;
+  --color-chrome-700: #55585f;
+
+  /* Signal orange — the one accent, used sparingly */
+  --color-signal: #f2761d;
+  --color-signal-high: #ff8a3d;
+  --color-signal-dim: #f2761d26;
+
+  /* Fonts */
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+
+  /* Radius — crisp, engineered, not bubbly */
+  --radius-mg: 3px;
+  --radius-mg-lg: 6px;
+
+  --container-page: 1400px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-obsidian);
+  color: var(--color-chrome-200);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--color-signal);
+  outline-offset: 3px;
+}
+
+.mg-brushed {
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 0%, rgba(242, 118, 29, 0.06), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 100% 10%, rgba(244, 245, 246, 0.05), transparent 55%),
+    repeating-linear-gradient(100deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+}
+
+.mg-chrome-text {
+  background: linear-gradient(180deg, #ffffff 0%, #d7d9dc 45%, #9a9da3 55%, #e7e8ea 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mg-hairline {
+  border-color: var(--color-hairline);
+}
+
+.mg-eyebrow {
+  font-family: var(--font-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  color: var(--color-chrome-500);
+}
+
+@keyframes mg-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--color-signal-dim); }
+  50% { opacity: 0.85; box-shadow: 0 0 0 6px transparent; }
+}
+.mg-signal-dot {
+  animation: mg-pulse 2.8s ease-in-out infinite;
+}
