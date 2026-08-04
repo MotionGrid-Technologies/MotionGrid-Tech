@@ -91,7 +91,7 @@ documentation — build these once there's a live, paying product to support.
 this is how u access it
  http://localhost:3000/adminj2-v1/login
  then u use your real email adress  (the one u use to communicate with me)
- the password is harcoded for now (motiongrid2026)
+ the password is harcoded for now i sent it to ur email
 made a diabolical name for the admin folder jst so its harder to guess
 
 Set the real production domain (url) — line 13
