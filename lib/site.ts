@@ -10,8 +10,8 @@ export const site = {
   tagline: "Where we build tomorrow's software today.",
   description:
     "MotionGrid Technologies designs and builds bespoke software, from client platforms to in-house tools, engineered for precision, performance, and longevity.",
-  url: "https://motiongrid.tech", // TODO: set production domain
-  email: "hello@motiongrid.tech", // TODO: confirm inbox
+  url: "https://motiongrid.tech", 
+  email: "motiongridt@gmail.com", 
 };
 
 export const navItems = [
@@ -64,18 +64,18 @@ export const founders = [
   {
     name: "Prince Ncube", 
     role: "Co-Founder & Engineering Lead", 
-    bio: "Technology professional with experience in machine learning, data analysis, cybersecurity, and full-stack development. Beyond software engineering, I specialize in social media management and content creation, with a proven track record of growing and managing audiences across multiple digital platforms.",// Todo  need better bio
+    bio: "A Technology professional with experience in machine learning, data analysis, cybersecurity, and full-stack development. In addition to software engineering, I specialize in social media management and content creation, with a demonstrated track record of growing and managing audiences across multiple digital platforms.",
     phone: "+27 62 711 3769", 
-    email: "PNcube@motiongrid.tech", 
+    email: "princenube74@gmail.com", 
     photo: "/team/founder-1.png", 
     focus: ["Systems architecture", "Backend & infrastructure"],
   },
   {
     name: "Mnqobi Ntuli", 
     role: "Co-Founder & Product Lead", 
-    bio: "Software developer with a passion for building digital solutions. I have experiance with modern web technologies, backend systems, databases, and cloud platforms, Machine learning and more. This allows me totake products from concept to deploymen. I also play a Key role in client acquisition, communicating technical solutions in a way businesses understand. I also manage stakeholder relationships from the first conversation through project delivery. ",// Todo  need better bio
-    phone: "+27 75 111 8853", 
-    email: "MNtuli@motiongrid.tech", 
+    bio: "A Software developer with a passion for building digital solutions. Experienced in modern web technologies, backend systems, databases, cloud platforms, and machine learning, I take products from concept to deployment. I also play a key role in client acquisition, communicating technical solutions in ways businesses understand, and manage stakeholder relationships from first conversation through delivery.",// Todo  need better bio
+    phone: "+27 75 111 8856", 
+    email: "Mnqobibog@gmail.com", 
     photo: "/team/founder-2.png", 
     focus: ["Product & interface design", "Client delivery"],
   },

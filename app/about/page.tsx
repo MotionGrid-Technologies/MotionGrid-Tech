@@ -30,11 +30,8 @@ export default function AboutPage() {
           <SectionHeading
             eyebrow="The founders"
             title="The minds behind the machinery."
-            lede="MotionGrid Technologies was founded by Mnqobi Ntuli and Prince Ncube,
-             two software developers brought together by a shared passion for solving real-world problems through technology. 
-             What began with university projects and countless hours of learning evolved into a partnership built on trust, curiosity, and a commitment to delivering software that makes a measurable difference.
-             As computer scientist Alan Kay famously said, 'The best way to predict the future is to invent it.' That philosophy continues to shape how we approach every project—embracing new technologies,
-              refining our craft, and building solutions that move businesses forward. At MotionGrid, we believe great software isn't created by knowing everything; it's created by never stopping the pursuit of learning."
+            lede="MotionGrid Technologies was founded by Mnqobi Ntuli and Prince Ncube, two developers whose university projects grew into a partnership built on trust, curiosity, and a drive to build software that makes a real difference. As Alan Kay put it, 'The best way to predict the future is to invent it.' That belief still guides us—embracing new technologies and refining our craft to move businesses forward. 
+            At MotionGrid, great software isn't built by knowing everything, but by never stopping the pursuit of learning."
           />
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">

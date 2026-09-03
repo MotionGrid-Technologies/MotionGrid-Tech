@@ -10,9 +10,9 @@ export function LoginForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(signIn, initialState);
 
   return (
-    <section className="flex min-h-[calc(100vh-5rem)] items-center justify-center py-16">
+    <section className="fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-y-auto bg-black px-6 py-16">
       <Container className="max-w-md">
-        <div className="rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/50 p-8">
+        <div className="rounded-[var(--radius-mg-lg)] border border-hairline bg-black p-8">
           <div className="mb-8 flex flex-col gap-2">
             <span className="mg-eyebrow">Admin</span>
             <h1 className="font-display text-3xl text-chrome-100">Sign in</h1>

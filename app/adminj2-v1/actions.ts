@@ -14,6 +14,7 @@ import {
   SESSION_MAX_AGE,
   authenticate,
   createSession,
+  verifySession,
 } from "@/lib/admin-auth";
 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,13 @@ export type DemoFormState = {
   message: string;
   errors?: Record<string, string>;
 };
+
+async function requireAdminSession(): Promise<void> {
+  const session = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!verifySession(session)) {
+    redirect("/adminj2-v1/login");
+  }
+}
 
 export async function submitDemoRequest(
   _prev: DemoFormState,
@@ -64,11 +72,13 @@ export async function setDemoRequestStatus(
   id: number,
   status: DemoRequestStatus
 ): Promise<void> {
+  await requireAdminSession();
   updateDemoRequestStatus(id, status);
   revalidatePath("/adminj2-v1/dashboard");
 }
 
 export async function removeDemoRequest(id: number): Promise<void> {
+  await requireAdminSession();
   deleteDemoRequest(id);
   revalidatePath("/adminj2-v1/dashboard");
 }
