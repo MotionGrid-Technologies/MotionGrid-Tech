@@ -11,7 +11,7 @@ export const site = {
   description:
     "MotionGrid Technologies designs and builds bespoke software, from client platforms to in-house tools, engineered for precision, performance, and longevity.",
   url: "https://motiongrid.tech", 
-  email: "motiongridt@gmail.com", 
+  email: "hi@motiongrid.co.za",
 };
 
 export const navItems = [
@@ -19,7 +19,7 @@ export const navItems = [
   { label: "About", href: "/about" },
   { label: "Products", href: "/products" },
   { label: "Technology", href: "/technology" },
-  { label: "Industries", href: "/industries" },
+  { label: "Industries", href: "/industries#active-industries" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -36,7 +36,7 @@ export const footerColumns = [
     title: "Work",
     links: [
       { label: "Products", href: "/products" },
-      { label: "Industries", href: "/industries" },
+      { label: "Industries", href: "/industries#active-industries" },
       { label: "Technology", href: "/technology" },
     ],
   },
@@ -66,7 +66,7 @@ export const founders = [
     role: "Co-Founder & Engineering Lead", 
     bio: "A Technology professional with experience in machine learning, data analysis, cybersecurity, and full-stack development. In addition to software engineering, I specialize in social media management and content creation, with a demonstrated track record of growing and managing audiences across multiple digital platforms.",
     phone: "+27 62 711 3769", 
-    email: "princenube74@gmail.com", 
+    email: "Princencube@motiongrid.co.za",
     photo: "/team/founder-1.png", 
     focus: ["Systems architecture", "Backend & infrastructure"],
   },
@@ -75,7 +75,7 @@ export const founders = [
     role: "Co-Founder & Product Lead", 
     bio: "A Software developer with a passion for building digital solutions. Experienced in modern web technologies, backend systems, databases, cloud platforms, and machine learning, I take products from concept to deployment. I also play a key role in client acquisition, communicating technical solutions in ways businesses understand, and manage stakeholder relationships from first conversation through delivery.",// Todo  need better bio
     phone: "+27 75 111 8856", 
-    email: "Mnqobibog@gmail.com", 
+    email: "Mnqobintuli@motiongrid.co.za",
     photo: "/team/founder-2.png", 
     focus: ["Product & interface design", "Client delivery"],
   },

@@ -30,7 +30,7 @@ export default function TechnologyPage() {
             {technologies.map((t) => (
               <TechBadge
                 key={t.name}
-                glyph={t.glyph}
+                logo={t.logo}
                 name={t.name}
                 category={t.category}
                 description={t.description}

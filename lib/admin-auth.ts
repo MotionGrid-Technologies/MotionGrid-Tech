@@ -4,8 +4,8 @@ export const SESSION_COOKIE = "mg_admin_session";
 
 // Hardcoded for now — swap for a real auth provider before this is public.
 const ADMIN_USERS: Record<string, string> = {
-  "mnqobibog@gmail.com": "motiongrid2026",
-  "princenube74@gmail.com": "motiongrid2026",
+  "mnqobintuli@motiongrid.co.za": "motiongrid2026",
+  "princencube@motiongrid.co.za": "motiongrid2026",
 };
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24; // 1 day

@@ -35,7 +35,7 @@ export function LoginForm({ next }: { next: string }) {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  defaultValue="mnqobibog@gmail.com"
+                  defaultValue="Mnqobintuli@motiongrid.co.za"
                   className="w-full bg-transparent py-3 text-sm text-chrome-100 placeholder:text-chrome-700 focus:outline-none"
                   placeholder="you@example.com"
                 />

@@ -83,7 +83,7 @@ export default function Home() {
           />
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
             {technologies.map((t) => (
-              <TechBadge key={t.name} glyph={t.glyph} name={t.name} category={t.category} />
+              <TechBadge key={t.name} logo={t.logo} name={t.name} category={t.category} />
             ))}
           </div>
           <Button href="/technology" variant="ghost" className="self-start">
@@ -113,7 +113,7 @@ export default function Home() {
               </Card>
             ))}
           </div>
-          <Button href="/industries" variant="ghost" className="self-start">
+          <Button href="/industries#active-industries" variant="ghost" className="self-start">
             All industries <ArrowUpRight size={16} />
           </Button>
         </Container>
