@@ -91,7 +91,11 @@ documentation — build these once there's a live, paying product to support.
 this is how u access it
  http://localhost:3000/adminj2-v1/login
  then u use your real email adress  (the one u use to communicate with me)
+<<<<<<< HEAD
  the password is harcoded for now ()
+=======
+ the password is harcoded for now i sent it to ur email
+>>>>>>> 0ecea122c57bf646a5375fa20dc5be9f3df20214
 made a diabolical name for the admin folder jst so its harder to guess
 
 Set the real production domain (url) — line 13
