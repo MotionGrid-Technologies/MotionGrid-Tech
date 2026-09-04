@@ -12,7 +12,7 @@ export default function CookiePolicyPage() {
     <LegalDoc
       eyebrow="Legal"
       title="Cookie Policy"
-      updated="4 August 2026"
+      updated="4 September 2026"
       intro="This explains the cookies and similar technologies used on this site, and how to control them."
       sections={[
         {
@@ -24,8 +24,8 @@ export default function CookiePolicyPage() {
         {
           heading: "Cookies we use",
           list: [
-            "Essential cookies — required for core site functionality (e.g. remembering cookie preferences and basic session state).",
-            "Analytics cookies — PostHog, used to understand aggregate site usage such as pages viewed, general navigation patterns, and interaction with features like the Live Sandbox and Micro-Tools. TODO: confirm final analytics configuration and retention.",
+            "Essential cookies — required for core site functionality (e.g. mg_cookie_consent to remember your preferences and basic session state).",
+            "Analytics cookies — PostHog, used to understand aggregate site usage such as pages viewed, general navigation patterns, and interaction with features like the Live Sandbox and Micro-Tools. Analytics data is retained for 1 year.",
           ],
         },
         {
@@ -38,14 +38,13 @@ export default function CookiePolicyPage() {
           heading: "Managing cookies",
           paragraphs: [
             "Most browsers let you refuse, block, or delete cookies through their settings, and many offer a way to do this on a per-site basis. Blocking essential cookies may affect site functionality, such as remembering your preferences.",
-            "TODO: if a cookie consent banner or preference centre is added to the site, link or describe it here.",
+            "You can manage your preferences at any time using the cookie banner that appears at the bottom of the site. If you have already made a choice and wish to change it, you can clear your browser's cookies for this site to reset the preference.",
           ],
         },
         {
           heading: "Third parties",
           paragraphs: [
-            "Analytics cookies are set by PostHog on our behalf. PostHog may process this data in accordance with its own privacy practices. We do not permit third parties to set advertising or tracking cookies through this site.",
-            "TODO: confirm PostHog hosting region/instance (self-hosted vs. PostHog Cloud) for accuracy here and in the Privacy Policy's cross-border transfer disclosures.",
+            "Analytics cookies are set by PostHog on our behalf. We use PostHog Cloud (US region) to process this data. PostHog may process this data in accordance with its own privacy practices. We do not permit third parties to set advertising or tracking cookies through this site.",
           ],
         },
         {

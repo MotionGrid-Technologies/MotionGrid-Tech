@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# local sqlite store (ephemeral local data — never deploy this)
+/data
+
 # debug
 npm-debug.log*
 yarn-debug.log*

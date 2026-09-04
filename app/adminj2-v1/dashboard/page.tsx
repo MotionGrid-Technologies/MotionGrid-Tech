@@ -13,6 +13,9 @@ import {
 import { removeDemoRequest, setDemoRequestStatus } from "../actions";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
+// Data must be read per-request, never baked in at build time.
+export const dynamic = "force-dynamic";
+
 // ---------------------------------------------------------------------------
 // ⚠️ No auth yet. Gate this route (middleware / Server Action check) before
 // exposing the dashboard publicly.
