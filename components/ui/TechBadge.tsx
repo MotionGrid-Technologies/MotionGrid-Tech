@@ -1,21 +1,29 @@
 import Image from "next/image";
+import { cn } from "@/lib/cn";
 
 export function TechBadge({
-  glyph,
+  logo,
   name,
   category,
   description,
+  className,
 }: {
-  glyph: string;
+  logo: string;
   name: string;
   category: string;
   description?: string;
+  className?: string;
 }) {
   return (
-    <div className="group flex flex-col items-center gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/50 p-8 text-center transition-colors hover:border-chrome-700">
+    <div
+      className={cn(
+        "group flex flex-col items-center gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/50 p-8 text-center transition-colors hover:border-chrome-700",
+        className
+      )}
+    >
       <div className="flex h-16 w-16 items-center justify-center rounded-full border border-hairline bg-obsidian transition-colors group-hover:border-signal/50">
         <Image
-          src={glyph}
+          src={logo}
           alt={`${name} logo`}
           width={28}
           height={28}

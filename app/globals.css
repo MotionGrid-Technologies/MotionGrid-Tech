@@ -28,6 +28,20 @@
   --color-signal-high: #ff8a3d;
   --color-signal-dim: #f2761d26;
 
+  /* Dashboard palette — light-surface admin UI (components/ui, components/admin).
+     primary reuses the signal orange so dashboard actions stay on-brand. */
+  --color-primary: #f2761d;
+  --color-primary-dark: #d9640f;
+  --color-primary-light: #ff8a3d;
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+
+  --color-grey-dark: #111827;
+  --color-grey-medium: #6b7280;
+  --color-grey: #9ca3af;
+  --color-grey-light: #f3f4f6;
+  --color-grey-lightest: #f9fafb;
+
   /* Fonts */
   --font-display: var(--font-fraunces);
   --font-sans: var(--font-inter);
@@ -36,6 +50,7 @@
   /* Radius — crisp, engineered, not bubbly */
   --radius-mg: 3px;
   --radius-mg-lg: 6px;
+  --radius-base: 6px;
 
   --container-page: 1400px;
 }
@@ -97,6 +112,20 @@ body {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--color-signal-dim); }
   50% { opacity: 0.85; box-shadow: 0 0 0 6px transparent; }
 }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .mg-signal-dot {
+  animation: mg-pulse 2.8s ease-in-out infinite;
+}
+
+/* Filament signal node — scroll-driven travel (JS) + pulse (CSS). */
+.mg-filament-node {
+  offset-rotate: 0deg;
   animation: mg-pulse 2.8s ease-in-out infinite;
 }

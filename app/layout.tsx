@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "@/components/nav/Navbar";
 import { Footer } from "@/components/nav/Footer";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
+import { CookieBanner } from "@/components/analytics/CookieBanner";
 import { site } from "@/lib/site";
 
 const fraunces = Fraunces({
@@ -58,9 +59,9 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/brand/logo.png",
+    icon: "/brand/logo-icon.svg",
+    shortcut: "/brand/logo-icon.svg",
+    apple: "/brand/apple-touch-icon.png",
   },
   robots: {
     index: true,
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col">
         <PostHogProvider />
+        <CookieBanner />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

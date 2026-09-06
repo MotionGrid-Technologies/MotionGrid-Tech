@@ -53,13 +53,12 @@ components/
 lib/
   site.ts             nav items, footer links, founders, industries — EDIT HERE
   technologies.ts     tech stack list shown on Home + Technology
-  db.ts               SQLite store (demo requests + PayFast payments)
+  lead-store.ts        Supabase lead store (demo requests + PayFast payments)
   admin-auth.ts       admin session + hardcoded credentials
                       (move to env vars before launch)
   cn.ts               clsx + tailwind-merge helper
-data/                 motiongrid.db (SQLite file)
 proxy.ts              admin auth gate (runs before /adminj2-v1/* routes)
-next.config.ts        security headers + better-sqlite3 serverExternalPackages
+next.config.ts        security headers
 .env.example          PostHog + Google Search Console keys (all optional)
 ```
 
@@ -91,7 +90,11 @@ documentation — build these once there's a live, paying product to support.
 this is how u access it
  http://localhost:3000/adminj2-v1/login
  then u use your real email adress  (the one u use to communicate with me)
+<<<<<<< HEAD
+ the password is harcoded for now ()
+=======
  the password is harcoded for now i sent it to ur email
+>>>>>>> 0ecea122c57bf646a5375fa20dc5be9f3df20214
 made a diabolical name for the admin folder jst so its harder to guess
 
 Set the real production domain (url) — line 13

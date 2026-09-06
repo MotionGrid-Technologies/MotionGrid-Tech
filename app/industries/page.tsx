@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
-import { PageHero } from "@/components/sections/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card } from "@/components/ui/Card";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -18,17 +17,9 @@ export default function IndustriesPage() {
 
   return (
     <>
-      <PageHero
-        eyebrow="Industries"
-        title="Depth over breadth."
-        lede="We build for a deliberately small set of industries, learning each
-        one's operational reality closely enough to build software that
-        actually fits."
-      />
-
-      <section className="py-24 md:py-28">
+      <section id="active-industries" className="py-24 md:py-28">
         <Container className="flex flex-col gap-14">
-          <SectionHeading eyebrow="Where we work today" title="Active industries." />
+          <SectionHeading eyebrow="Industries" title="Active industries." />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {active.map((ind) => (
               <Card key={ind.slug} className="flex flex-col gap-4">

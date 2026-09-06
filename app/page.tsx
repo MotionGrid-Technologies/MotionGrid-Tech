@@ -1,44 +1,28 @@
-import Link from "next/link";
 import { ArrowUpRight, Gauge, ShieldCheck, Wrench } from "lucide-react";
+import { Hero } from "@/components/sections/Hero";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { TechBadge } from "@/components/ui/TechBadge";
 import { Card } from "@/components/ui/Card";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { TechBadge } from "@/components/ui/TechBadge";
-import { Filament } from "@/components/motifs/Filament";
 import { technologies } from "@/lib/technologies";
 import { industries } from "@/lib/site";
 
 export default function Home() {
   return (
     <>
-      {/* ---------------------------------------------------------------- */}
-      {/* Hero                                                              */}
-      {/* ---------------------------------------------------------------- */}
-      <section className="relative overflow-hidden border-b border-hairline mg-brushed">
-        <div className="pointer-events-none absolute inset-0 opacity-70">
-          <Filament />
-        </div>
-        <Container className="relative flex min-h-[86vh] flex-col justify-center gap-8 py-28">
-          <Eyebrow>Precision software, engineered in-house</Eyebrow>
-          <h1 className="max-w-3xl font-display text-[2.75rem] italic leading-[1.05] tracking-[-0.01em] text-chrome-100 sm:text-[3.5rem] md:text-[4.5rem]">
+      <Hero
+        eyebrow="Precision software, engineered in-house"
+        title={
+          <>
             <span className="mg-chrome-text not-italic">Developing </span>{" "}
             software moves businesses forward.
-            <br className="hidden sm:block" /> 
-          </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-chrome-500">
-            MotionGrid Technologies designs  custom software platforms that simplify operations and eliminate repetitive work.
-             We build tailor-made platforms that automate workflows, connect teams, and scale with your company
-          </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Button href="/contact#demo" variant="primary">
-              Book a demo <ArrowUpRight size={16} />
-            </Button>
-          </div>
-        </Container>
-      </section>
+          </>
+        }
+        description="MotionGrid Technologies designs custom software platforms that simplify operations and eliminate repetitive work. We build tailor-made platforms that automate workflows, connect teams, and scale with your company"
+        cta={{ primary: { label: "Book a free demo", href: "/contact#demo" } }}
+      />
 
       {/* ---------------------------------------------------------------- */}
       {/* Proof strip                                                       */}
@@ -83,7 +67,7 @@ export default function Home() {
           />
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
             {technologies.map((t) => (
-              <TechBadge key={t.name} glyph={t.glyph} name={t.name} category={t.category} />
+              <TechBadge key={t.name} logo={t.logo} name={t.name} category={t.category} />
             ))}
           </div>
           <Button href="/technology" variant="ghost" className="self-start">
@@ -113,7 +97,7 @@ export default function Home() {
               </Card>
             ))}
           </div>
-          <Button href="/industries" variant="ghost" className="self-start">
+          <Button href="/industries#active-industries" variant="ghost" className="self-start">
             All industries <ArrowUpRight size={16} />
           </Button>
         </Container>
@@ -135,7 +119,7 @@ export default function Home() {
           </div>
           <div className="flex gap-4">
             <Button href="/contact#demo" variant="primary">
-              Book a demo <ArrowUpRight size={16} />
+              Book a free demo
             </Button>
           </div>
         </Container>

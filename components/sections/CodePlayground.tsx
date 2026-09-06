@@ -181,7 +181,7 @@ export function CodePlayground() {
           />
           <div className="h-[80px] overflow-y-auto border-t border-hairline-soft bg-obsidian-soft px-4 py-2 font-mono text-xs">
             {logs.length === 0 ? (
-              <span className="text-chrome-700">// console output appears here</span>
+              <span className="text-chrome-700">{"// console output appears here"}</span>
             ) : (
               logs.map((log, i) => (
                 <div

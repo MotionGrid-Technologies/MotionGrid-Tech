@@ -1,0 +1,24 @@
+{
+  "project_type": "Next.js 16 Marketing Site + Admin Dashboard",
+  "styling": "Tailwind CSS v4 (CSS-first config)",
+  "database": "Supabase — MotionGrid leads (SITE_SUPABASE_*) and Autofield app (NEXT_PUBLIC_SUPABASE_*)",
+  "auth": "Custom HMAC session cookies for admin",
+  "rules": [
+    "STRICT: Never use raw hex codes or arbitrary Tailwind values in components.",
+    "ALWAYS use design tokens from app/globals.css: text-chrome-100, bg-obsidian, border-hairline, text-signal, etc.",
+    "ALWAYS use the brand font variables: font-display (Fraunces), font-sans (Inter), font-mono (JetBrains Mono).",
+    "ALWAYS build new UI as reusable components or widgets. Prefer components/ui/ for atoms and components/sections/ for page sections.",
+    "When a visual pattern could appear on more than one page, extract it into a reusable component instead of duplicating JSX.",
+    "Keep page files thin. Drive lists and navigation from lib/site.ts and lib/technologies.ts, not hardcoded markup.",
+    "Define TypeScript props interfaces for every new component and reuse existing types where possible.",
+    "Use Server Components by default. Add 'use client' only when necessary.",
+    "Use named imports from lucide-react. Never import '* as Icons' from lucide-react.",
+    "Keep all Supabase service-role usage in server code only (Server Components / Server Actions / API routes).",
+    "All admin Server Actions MUST verify the session before performing authenticated data mutations (authentication actions such as signIn and signOut, which establish or clear SESSION_COOKIE, are exempt).",
+    "Never commit secrets, credentials, or session keys to source code.",
+    "Respect prefers-reduced-motion for animations.",
+    "Use .mg-brushed, .mg-chrome-text, and .mg-eyebrow utilities where the design calls for them.",
+    "Mobile-first responsive design: default styles target mobile, then md:/lg: breakpoints.",
+    "Mark launch-blockers with TODO and reference README.md checklist."
+  ]
+}
