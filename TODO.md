@@ -12,16 +12,17 @@ Final consolidated plan. Decisions are locked below — do not re-litigate.
 
 This repo houses **MotionGrid's marketing site** BUT also serves as the **Autofield SuperAdmin backdoor**. Two distinct Supabase projects exist:
 
-| Connection | Purpose | Env prefix |
+| Deployment | Project | Env vars |
 |---|---|---|
-| **MotionGrid** | This project's own auth/identity, marketing emails, lead capture | `NEXT_PUBLIC_SITE_SUPABASE_*` |
-| **Autofield** | The Autofield app this SuperAdmin manages (multi-tenant workshop SaaS) | `NEXT_PUBLIC_SUPABASE_*` (existing) |
+| **MotionGrid** (this marketing site) | MotionGrid Supabase | `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server-only); `NEXT_PUBLIC_SITE_SUPABASE_URL`, `NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` (client, only if a browser client is ever added) |
+| **Autofield** (SuperAdmin backdoor) | Autofield Supabase (`ueqptaohroqxmwrddicj`) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| **Edge Function** (`supabase/functions/custom-access-token`) | Autofield Supabase | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Deno runtime config) |
 
 - `super_admin` login authenticates against **Autofield's** Supabase (`app/adminj2-v1/autofield/login`).
 - MotionGrid's own identity/auth (future client portal, marketing data) lives in **MotionGrid's** Supabase — NOT the same project.
-- Do **not** collapse these. The current `env` file only holds the Autofield project (`ueqptaohroqxmwrddicj`); MotionGrid's own project URL/keys still need to be added.
+- Do **not** collapse these. The MotionGrid project uses the `SITE_SUPABASE_*` prefix; the Autofield app keeps the `NEXT_PUBLIC_SUPABASE_*` prefix; the Edge Function reads plain `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from its own runtime config.
 
-> 🚧 **BLOCKER:** MotionGrid's own Supabase project credentials are not yet in the env. Confirm project URL + anon key before Phase 3 marketing-email persistence.
+> 🚧 **BLOCKER (resolved):** MotionGrid's own Supabase project credentials are present in the env (`SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY`). Create the `demo_requests`/`payfast_payments` tables via `migrations/20260906_motiongrid_lead_capture.sql` before Phase 3 marketing-email persistence.
 
 ---
 
@@ -29,8 +30,8 @@ This repo houses **MotionGrid's marketing site** BUT also serves as the **Autofi
 
 - [ ] Create `.env.local` (never commit; add to `.gitignore`)
 - [ ] **Rotate all exposed secrets** — Resend `re_...` (shared in chat) + Supabase anon/service keys (present in git history)
-- [ ] Add **MotionGrid** Supabase vars: `SITE_SUPABASE_URL`, `SITE_SUPABASE_ANON_KEY` (own project)
-- [ ] Keep Autofield Supabase vars as-is (`NEXT_PUBLIC_SUPABASE_URL` etc. = `ueqptaohroqxmwrddicj`)
+- [ ] Add **MotionGrid** Supabase vars (own project): `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server), and `NEXT_PUBLIC_SITE_SUPABASE_URL`/`NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` if a browser client is introduced
+- [ ] Keep Autofield Supabase vars as-is (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `ueqptaohroqxmwrddicj`, `SUPABASE_SERVICE_ROLE_KEY`)
 - [ ] Add Resend vars:
   - `RESEND_API_KEY` (rotated)
   - `EMAIL_FROM=hi@motiongrid.tech`
@@ -155,12 +156,12 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [ ] Create `admin` role in Supabase with RLS policies
 
 ### Database Migration
-- [ ] Delete `lib/db.ts` (SQLite)
-- [ ] Delete `data/motiongrid.db`
-- [ ] Remove `better-sqlite3` from `package.json`
-- [ ] Remove `serverExternalPackages: ["better-sqlite3"]` from `next.config.ts`
-- [ ] Create Supabase tables:
-  - [ ] `demo_requests` (name, company, email, phone, message, status, created_at)
+- [x] Delete `lib/db.ts` (SQLite)
+- [x] Delete `data/motiongrid.db`
+- [x] Remove `better-sqlite3` from `package.json`
+- [x] Remove `serverExternalPackages: ["better-sqlite3"]` from `next.config.ts`
+- [x] Create Supabase tables:
+  - [x] `demo_requests` (name, company, email, phone, message, status, created_at)
   - [ ] `payfast_payments` (pf_payment_id, amounts, status, timestamps)
   - [ ] `subscriptions` (client_id, plan, status, amount, next_billing_date)
   - [ ] `clients` (name, email, domain, project_status, workshop_slug)

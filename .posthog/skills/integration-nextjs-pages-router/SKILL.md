@@ -25,7 +25,7 @@ Follow these steps in order to complete the integration:
 - `references/1-begin.md` - Start the event tracking setup process by analyzing the project and creating an event tracking plan
 - `references/2-edit.md` - Implement PostHog event tracking in the identified files, following best practices and the example project
 - `references/3-revise.md` - Review and fix any errors in the PostHog integration implementation
-- `references/4-conclude.md` - Review and fix any errors in the PostHog integration implementation
+- `references/4-conclude.md` - Create the PostHog dashboard and insights, then publish the setup report
 - `references/next-js.md` - Next.js - docs
 - `references/identify-users.md` - Identify users - docs
 - `references/COMMANDMENTS.md` - Framework-specific rules the integration must follow

@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/brand/logo-icon.svg",
     shortcut: "/brand/logo-icon.svg",
-    apple: "/brand/logo-icon.svg",
+    apple: "/brand/apple-touch-icon.png",
   },
   robots: {
     index: true,
