@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, MouseEventHandler } from "react";
 
 const base =
   "inline-flex items-center justify-center gap-2 rounded-[var(--radius-mg)] px-6 py-3 text-sm font-medium tracking-wide transition-colors duration-200 focus-visible:outline-offset-4 disabled:opacity-40 disabled:pointer-events-none";
@@ -24,7 +24,11 @@ export function Button({ variant = "chrome", className, href, children, ...props
   const classes = cn(base, variants[variant], className);
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link
+        href={href}
+        className={classes}
+        onClick={props.onClick as MouseEventHandler<HTMLAnchorElement> | undefined}
+      >
         {children}
       </Link>
     );

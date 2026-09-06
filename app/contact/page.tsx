@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { useActionState, useRef, useState } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Lock, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
@@ -20,6 +20,7 @@ export default function ContactPage() {
   const initialState: DemoFormState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(submitDemoRequest, initialState);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
   return (
     <>
@@ -46,6 +47,11 @@ export default function ContactPage() {
               action={formAction}
               onSubmit={() => {
                 if (posthogConfigured) posthog.capture("demo_request_submitted");
+                // Clear the token and reset the widget so the next submission
+                // requires a fresh challenge (including after validation or
+                // persistence failures).
+                setTurnstileToken("");
+                turnstileRef.current?.reset();
               }}
               className="flex flex-col gap-5"
             >
@@ -75,6 +81,7 @@ export default function ContactPage() {
               <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
 
               <Turnstile
+                ref={turnstileRef}
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
                 options={{
                   action: "demo_request",

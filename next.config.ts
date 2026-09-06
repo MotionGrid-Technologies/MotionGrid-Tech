@@ -15,9 +15,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // better-sqlite3 is a native Node addon — keep it out of the bundler so
-  // the prebuilt .node binary loads at runtime on the server only.
-  serverExternalPackages: ["better-sqlite3"],
   async headers() {
     return [
       {

@@ -21,5 +21,7 @@ if (!projectToken) {
     defaults: "2026-01-30",
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
+    opt_out_capturing_by_default: true,
+    opt_out_persistence_by_default: true,
   });
 }

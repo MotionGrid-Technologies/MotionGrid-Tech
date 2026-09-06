@@ -13,7 +13,8 @@ export default function GlobalError({
   useEffect(() => {
     if (
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN &&
-      process.env.NEXT_PUBLIC_POSTHOG_HOST
+      process.env.NEXT_PUBLIC_POSTHOG_HOST &&
+      posthog.has_opted_in_capturing()
     ) {
       posthog.captureException(error)
     }

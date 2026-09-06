@@ -84,13 +84,20 @@ instrumentation-client.ts      # Client-side PostHog initialization
 ```typescript
 import posthog from "posthog-js"
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: "/ingest",
-  ui_host: "https://us.posthog.com",
-  defaults: '2026-01-30',
-  capture_exceptions: true,
-  debug: process.env.NODE_ENV === "development",
-});
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+if (!projectToken) {
+  if (process.env.NODE_ENV === "development") {
+    throw new Error("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is configured")
+  }
+} else {
+  posthog.init(projectToken, {
+    api_host: "/ingest",
+    ui_host: "https://us.posthog.com",
+    defaults: '2026-01-30',
+    capture_exceptions: true,
+    debug: process.env.NODE_ENV === "development",
+  });
+}
 ```
 
 ### User identification (AuthContext.tsx)
@@ -106,7 +113,6 @@ posthog.identify(username, {
 ```typescript
 posthog.capture('burrito_considered', {
   total_considerations: count,
-  username: username,
 });
 ```
 
@@ -170,16 +176,23 @@ NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```ts
 import posthog from "posthog-js"
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: "/ingest",
-  ui_host: "https://us.posthog.com",
-  // Include the defaults option as required by PostHog
-  defaults: '2026-01-30',
-  // Enables capturing unhandled exceptions via Error Tracking
-  capture_exceptions: true,
-  // Turn on debug in development mode
-  debug: process.env.NODE_ENV === "development",
-});
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+if (!projectToken) {
+  if (process.env.NODE_ENV === "development") {
+    throw new Error("NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is configured")
+  }
+} else {
+  posthog.init(projectToken, {
+    api_host: "/ingest",
+    ui_host: "https://us.posthog.com",
+    // Include the defaults option as required by PostHog
+    defaults: '2026-01-30',
+    // Enables capturing unhandled exceptions via Error Tracking
+    capture_exceptions: true,
+    // Turn on debug in development mode
+    debug: process.env.NODE_ENV === "development",
+  });
+}
 
 //IMPORTANT: Never combine this approach with other client-side PostHog initialization approaches, especially components like a PostHogProvider. instrumentation-client.ts is the correct solution for initializating client-side PostHog in Next.js 15.3+ apps.
 ```
@@ -300,7 +313,6 @@ export default function BurritoPage() {
     // Capture burrito consideration event
     posthog.capture('burrito_considered', {
       total_considerations: user.burritoConsiderations + 1,
-      username: user.username,
     });
   };
 
@@ -631,9 +643,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         
         // Capture login event
-        posthog.capture('user_logged_in', {
-          username: username,
-        });
+        posthog.capture('user_logged_in');
         
         return true;
       }

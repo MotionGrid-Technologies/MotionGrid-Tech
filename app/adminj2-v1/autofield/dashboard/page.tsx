@@ -9,7 +9,7 @@ import {
   type DemoRequest,
   type DemoRequestStatus,
   type PayFastPayment,
-} from "@/lib/db";
+} from "@/lib/lead-store";
 import { removeDemoRequest, setDemoRequestStatus } from "../../actions";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
@@ -18,11 +18,14 @@ import { SignOutButton } from "@/components/admin/SignOutButton";
 // exposing the dashboard publicly.
 // ---------------------------------------------------------------------------
 
+// Data must be read per-request, never baked in at build time.
+export const dynamic = "force-dynamic";
+
 export const metadata = { title: "Dashboard", robots: { index: false, follow: false } };
 
-export default function AdminDashboardPage() {
-  const demos = listDemoRequests();
-  const payments = listPayFastPayments();
+export default async function AdminDashboardPage() {
+  const demos = await listDemoRequests();
+  const payments = await listPayFastPayments();
 
   const counts = {
     new: demos.filter((d) => d.status === "new").length,
@@ -128,7 +131,7 @@ const STATUS_TONE: Record<DemoRequestStatus, string> = {
 };
 
 function DemoRow({ request: r }: { request: DemoRequest }) {
-  const created = new Date(r.created_at + "Z").toLocaleString("en-ZA", {
+  const created = new Date(r.created_at).toLocaleString("en-ZA", {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -234,7 +237,7 @@ function PaymentsTable({ payments }: { payments: PayFastPayment[] }) {
                 <span className="text-chrome-300">{p.status}</span>
               </Td>
               <Td className="text-xs text-chrome-700">
-                {new Date(p.created_at + "Z").toLocaleDateString("en-ZA")}
+                {new Date(p.created_at).toLocaleDateString("en-ZA")}
               </Td>
             </tr>
           ))}

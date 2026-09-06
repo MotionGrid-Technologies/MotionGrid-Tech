@@ -9,13 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "22": "^0.0.0",
     "@marsidev/react-turnstile": "^1.6.1",
     "@react-pdf/renderer": "^4.9.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.114.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^11.10.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.25.0",

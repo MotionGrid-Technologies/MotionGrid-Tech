@@ -53,13 +53,12 @@ components/
 lib/
   site.ts             nav items, footer links, founders, industries — EDIT HERE
   technologies.ts     tech stack list shown on Home + Technology
-  db.ts               SQLite store (demo requests + PayFast payments)
+  lead-store.ts        Supabase lead store (demo requests + PayFast payments)
   admin-auth.ts       admin session + hardcoded credentials
                       (move to env vars before launch)
   cn.ts               clsx + tailwind-merge helper
-data/                 motiongrid.db (SQLite file)
 proxy.ts              admin auth gate (runs before /adminj2-v1/* routes)
-next.config.ts        security headers + better-sqlite3 serverExternalPackages
+next.config.ts        security headers
 .env.example          PostHog + Google Search Console keys (all optional)
 ```
 

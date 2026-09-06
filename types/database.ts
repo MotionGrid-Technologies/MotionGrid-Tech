@@ -1610,9 +1610,112 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_requests: {
+        Row: {
+          company: string
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string
+          status: string
+        }
+        Insert: {
+          company?: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string
+          name: string
+          phone?: string
+          status?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      payfast_payments: {
+        Row: {
+          amount_fee: number
+          amount_gross: number
+          amount_net: number
+          created_at: string
+          currency: string
+          email_address: string
+          id: string
+          item_name: string
+          name_first: string
+          name_last: string
+          pf_payment_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_fee?: number
+          amount_gross?: number
+          amount_net?: number
+          created_at?: string
+          currency?: string
+          email_address?: string
+          id?: string
+          item_name?: string
+          name_first?: string
+          name_last?: string
+          pf_payment_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_fee?: number
+          amount_gross?: number
+          amount_net?: number
+          created_at?: string
+          currency?: string
+          email_address?: string
+          id?: string
+          item_name?: string
+          name_first?: string
+          name_last?: string
+          pf_payment_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      public_business_settings: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          address: string | null
+          bank_name: string | null
+          branch_code: string | null
+          callout_fee: number | null
+          company_name: string | null
+          contact_email: string | null
+          default_deposit_percent: number | null
+          diagnostic_fee: number | null
+          document_footer: string | null
+          logo_url: string | null
+          phone: string | null
+          primary_color: string | null
+          site_name: string | null
+          terms_conditions: string | null
+          whatsapp_auto_reply: string | null
+          workshop_id: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_old_notifications: { Args: never; Returns: undefined }

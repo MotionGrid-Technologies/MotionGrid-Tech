@@ -8,7 +8,7 @@ import {
   insertDemoRequest,
   updateDemoRequestStatus,
   type DemoRequestStatus,
-} from "@/lib/db";
+} from "@/lib/lead-store";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
@@ -47,6 +47,7 @@ async function verifyTurnstile(token: string): Promise<boolean> {
           secret: process.env.TURNSTILE_SECRET_KEY ?? "",
           response: token,
         }),
+        signal: AbortSignal.timeout(5000),
       }
     );
 
@@ -85,7 +86,7 @@ export async function submitDemoRequest(
   }
 
   try {
-    insertDemoRequest({ name, company, email, phone, message });
+    await insertDemoRequest({ name, company, email, phone, message });
     revalidatePath("/adminj2-v1/dashboard");
   } catch (err) {
     console.error("submitDemoRequest failed", err);
@@ -101,17 +102,17 @@ export async function submitDemoRequest(
 // ---------------------------------------------------------------------------
 
 export async function setDemoRequestStatus(
-  id: number,
+  id: string,
   status: DemoRequestStatus
 ): Promise<void> {
   await requireAdminSession();
-  updateDemoRequestStatus(id, status);
+  await updateDemoRequestStatus(id, status);
   revalidatePath("/adminj2-v1/dashboard");
 }
 
-export async function removeDemoRequest(id: number): Promise<void> {
+export async function removeDemoRequest(id: string): Promise<void> {
   await requireAdminSession();
-  deleteDemoRequest(id);
+  await deleteDemoRequest(id);
   revalidatePath("/adminj2-v1/dashboard");
 }
 

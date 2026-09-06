@@ -98,20 +98,28 @@ PostHog AI
 
 ```javascript
 import posthog from 'posthog-js'
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
-  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-05-30'
-});
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
+if (projectToken && host) {
+  posthog.init(projectToken, {
+    api_host: host,
+    defaults: '2026-05-30'
+  })
+}
 ```
 
 ### instrumentation-client.ts
 
 ```typescript
 import posthog from 'posthog-js'
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-  defaults: '2026-05-30'
-});
+const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
+if (projectToken && host) {
+  posthog.init(projectToken, {
+    api_host: host,
+    defaults: '2026-05-30'
+  })
+}
 ```
 
 Bootstrapping with `instrumentation-client`
@@ -334,17 +342,11 @@ PostHog AI
 
 ```javascript
 // pages/posts/[id].js
-import { useContext, useEffect, useState } from 'react'
 import { getServerSession } from "next-auth/next"
 import { authOptions } from '@/lib/auth'
 import { PostHog } from 'posthog-node'
 export default function Post({ post, flags }) {
-  const [ctaState, setCtaState] = useState()
-  useEffect(() => {
-    if (flags) {
-      setCtaState(flags['blog-cta'])
-    }
-  })
+  const ctaState = flags?.['blog-cta']
   return (
     <div>
       <h1>{post.title}</h1>
@@ -353,7 +355,6 @@ export default function Post({ post, flags }) {
       {ctaState &&
         <p><a href="/">Go to PostHog</a></p>
       }
-      <button onClick={likePost}>Like</button>
     </div>
   )
 }
@@ -361,7 +362,7 @@ export async function getServerSideProps(ctx) {
   // Pass authOptions, or your session callbacks don't run.
   const session = await getServerSession(ctx.req, ctx.res, authOptions)
   let flags = null
-  if (session) {
+  if (session?.user?.id) {
     const client = new PostHog(
       process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
       {
@@ -371,13 +372,6 @@ export async function getServerSideProps(ctx) {
     // A stable ID from your auth system, not an email. See the note below.
     const distinctId = session.user.id
     flags = await client.getAllFlags(distinctId);
-    client.capture({
-      distinctId,
-      event: 'loaded blog article',
-      properties: {
-        $current_url: ctx.req.url,
-      },
-    });
     await client.shutdown()
   }
   const { posts } = await import('../../blog.json')
@@ -426,15 +420,21 @@ TSX
 PostHog AI
 
 ```jsx
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
+import { PostHog } from 'posthog-node'
+
+const posthog = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN, {
+  host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   // ... your configuration
-  fetch_options: {
-    cache: 'force-cache', // Use Next.js cache
-    next_options: {       // Passed to the `next` option for `fetch`
-      revalidate: 60,     // Cache for 60 seconds
-      tags: ['posthog'],  // Can be used with Next.js `revalidateTag` function
-    },
-  }
+  fetch: (url, options) => {
+    return fetch(url, {
+      ...options,
+      cache: 'force-cache', // Use Next.js cache
+      next: {
+        revalidate: 60,     // Cache for 60 seconds
+        tags: ['posthog'],  // Can be used with Next.js `revalidateTag` function
+      },
+    })
+  },
 })
 ```
 
