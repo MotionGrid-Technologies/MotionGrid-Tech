@@ -38,7 +38,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
             tickFormatter={(value: number) => `R${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
           />
           <Tooltip
-            formatter={(value: any) => [`R ${Number(value).toLocaleString('en-ZA')}`, 'Revenue']}
+            formatter={(value) => [`R ${Number(value).toLocaleString('en-ZA')}`, 'Revenue']}
             contentStyle={{
               backgroundColor: '#fff',
               border: '1px solid #E8E8E8',

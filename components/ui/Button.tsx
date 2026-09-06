@@ -6,7 +6,7 @@ const base =
   "inline-flex items-center justify-center gap-2 rounded-[var(--radius-mg)] px-6 py-3 text-sm font-medium tracking-wide transition-colors duration-200 focus-visible:outline-offset-4 disabled:opacity-40 disabled:pointer-events-none";
 
 const variants = {
-  primary: "bg-signal text-obsidian hover:bg-[var(--color-signal-high)]",
+  primary: "bg-signal text-obsidian hover:bg-signal-high",
   chrome:
     "border border-hairline text-chrome-100 hover:border-chrome-500 hover:text-chrome-100 bg-graphite/40",
   ghost: "text-chrome-300 hover:text-chrome-100",

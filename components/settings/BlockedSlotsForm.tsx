@@ -13,7 +13,7 @@ interface BlockedSlot {
   start_datetime: string
   end_datetime: string
   reason: string | null
-  created_at: string
+  created_at: string | null
 }
 
 export function BlockedSlotsForm() {
@@ -34,7 +34,7 @@ export function BlockedSlotsForm() {
 
   async function fetchBlockedSlots() {
     setLoading(true)
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('blocked_slots')
       .select('*')
       .order('start_datetime', { ascending: false })
@@ -164,7 +164,7 @@ export function BlockedSlotsForm() {
         <div className="text-center py-12 bg-grey-lightest rounded-base border border-grey-light/50">
           <Calendar className="h-8 w-8 text-grey-medium mx-auto mb-2" />
           <p className="text-sm text-grey-medium">No blocked slots yet.</p>
-          <p className="text-xs text-grey mt-1">Click "Block Time" to add lunch breaks, holidays, or time off.</p>
+          <p className="text-xs text-grey mt-1">Click &quot;Block Time&quot; to add lunch breaks, holidays, or time off.</p>
         </div>
       ) : (
         <div className="bg-white border border-grey-medium/10 rounded-base overflow-hidden">

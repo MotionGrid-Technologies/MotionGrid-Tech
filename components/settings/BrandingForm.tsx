@@ -65,9 +65,9 @@ export function BrandingForm({ settings, workshopId, onUpdate }: BrandingFormPro
       })
       onUpdate(form)
       toast.success('Branding saved! Refresh the page to see changes.')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save branding error:', err)
-      toast.error(err.message || 'Failed to save branding settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save branding settings')
     } finally {
       setSaving(false)
     }

@@ -7,6 +7,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/buttons'
 import { TableSearch } from '@/components/ui/TableSearch'
 import { PageWrapper } from '@/components/layout/PageWrapper'
+import posthog from 'posthog-js'
+
+const posthogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 type SEORecord = {
   id: string
@@ -90,7 +95,7 @@ export default function AdminSEOCommandPage() {
   }, [])
 
   async function fetchSEORegistry() {
-    let query = supabase.from('seo_registry').select('*').order('path_url', { ascending: true })
+    const query = supabase.from('seo_registry').select('*').order('path_url', { ascending: true })
     const { data } = await query
     setRecords(data || [])
   }
@@ -105,7 +110,7 @@ export default function AdminSEOCommandPage() {
         r.workshop_id === wsId
       )
       if (!existing) {
-        await (supabase as any).from('seo_registry').insert({
+        await supabase.from('seo_registry').insert({
           workshop_id: wsId,
           path_url: route.path,
           page_type: 'static_core',
@@ -117,6 +122,11 @@ export default function AdminSEOCommandPage() {
       }
     }
     await fetchSEORegistry()
+    if (posthogConfigured) {
+      posthog.capture('seo_core_routes_synced', {
+        workshop_scope: selectedWorkshopId === '__global__' ? 'global' : 'workshop',
+      })
+    }
     setScanning(false)
   }
 
@@ -143,10 +153,11 @@ export default function AdminSEOCommandPage() {
         city: r.city,
         suburb: r.suburb,
       }))
-      await (supabase as any).from('seo_registry').insert(toInsert)
+      await supabase.from('seo_registry').insert(toInsert)
     }
 
     await fetchSEORegistry()
+    if (posthogConfigured) posthog.capture('seo_global_configuration_cloned')
     setCloning(false)
     setCloneDone(true)
     setTimeout(() => setCloneDone(false), 2000)
@@ -157,7 +168,7 @@ export default function AdminSEOCommandPage() {
     if (!editingRecord) return
     setSaving(true)
 
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('seo_registry')
       .update({
         meta_title: editingRecord.meta_title.trim(),
@@ -170,6 +181,9 @@ export default function AdminSEOCommandPage() {
 
     setSaving(false)
     if (!error) {
+      if (posthogConfigured) {
+        posthog.capture('seo_metadata_updated', { record_type: editingRecord.page_type })
+      }
       setRecords(prev => prev.map(r => r.id === editingRecord.id ? editingRecord : r))
       setEditingRecord(null)
     }
@@ -177,12 +191,18 @@ export default function AdminSEOCommandPage() {
 
   async function handleToggleActive(record: SEORecord) {
     const newState = !record.is_active
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('seo_registry')
       .update({ is_active: newState, updated_at: new Date().toISOString() })
       .eq('id', record.id)
 
     if (!error) {
+      if (posthogConfigured) {
+        posthog.capture('seo_record_activation_changed', {
+          is_active: newState,
+          record_type: record.page_type,
+        })
+      }
       setRecords(prev => prev.map(r => r.id === record.id ? { ...r, is_active: newState } : r))
     }
   }
@@ -197,7 +217,7 @@ export default function AdminSEOCommandPage() {
     const fullPathUrl = `/${provSlug}/${citySlug}/${suburbSlug}`
     const wsId = selectedWorkshopId === '__global__' ? null : selectedWorkshopId
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from('seo_registry')
       .insert({
         workshop_id: wsId,
@@ -216,6 +236,11 @@ export default function AdminSEOCommandPage() {
 
     setSaving(false)
     if (!error && data) {
+      if (posthogConfigured) {
+        posthog.capture('seo_geo_node_created', {
+          workshop_scope: selectedWorkshopId === '__global__' ? 'global' : 'workshop',
+        })
+      }
       setRecords(prev => [data, ...prev])
       setShowGeoForm(false)
       setGeoForm({ province: 'Gauteng', city: '', suburb: '', title: '', desc: '', keywords: '', h1: '' })

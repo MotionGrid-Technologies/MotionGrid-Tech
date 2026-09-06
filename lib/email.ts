@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { createTransport } from 'nodemailer'
+import type { Json } from '@/types/database'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import { buildQuoteReadyCustomerEmail, getDefaultTemplate, DEFAULT_TEMPLATES, renderTemplate } from '@/lib/email-templates'
 
@@ -147,7 +148,7 @@ async function logEmail(params: {
   subject: string
   status: 'sent' | 'failed'
   errorMessage?: string
-  metadata?: Record<string, unknown>
+  metadata?: Json
 }) {
   try {
     const supabase = await createSupabaseServerClient()
@@ -160,7 +161,7 @@ async function logEmail(params: {
       status: params.status,
       error_message: params.errorMessage ?? null,
       metadata: params.metadata ?? null,
-    } as any)
+    })
   } catch {}
 }
 
@@ -211,7 +212,7 @@ export async function sendEmail(params: SendEmailParams) {
         replyTo: params.replyTo || sender.replyTo,
       })
     } else {
-      const emailConfig: any = {
+      const emailConfig: { from: string; to: string; subject: string; html: string; text?: string; replyTo?: string } = {
         from: sender.from,
         to: params.to,
         subject,
@@ -258,8 +259,9 @@ export async function sendEmail(params: SendEmailParams) {
 
     console.log('[email] Sent successfully to', params.to)
     return { success: true, messageId: result.messageId }
-  } catch (err: any) {
-    console.error('[email] Send exception:', err.message)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[email] Send exception:', msg)
     await logEmail({
       workshopId: params.workshopId ?? null,
       templateKey: params.templateKey,
@@ -267,9 +269,9 @@ export async function sendEmail(params: SendEmailParams) {
       fromDisplay: sender.from,
       subject,
       status: 'failed',
-      errorMessage: err.message,
+      errorMessage: msg,
     })
-    return { success: false, error: err.message }
+    return { success: false, error: msg }
   }
 }
 
@@ -311,8 +313,8 @@ async function sendViaSMTP(params: SMTPParams): Promise<{ success: boolean; erro
     })
 
     return { success: true, messageId: info.messageId }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) }
   }
 }
 

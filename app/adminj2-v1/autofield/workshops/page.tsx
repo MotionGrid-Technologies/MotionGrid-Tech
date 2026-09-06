@@ -5,7 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Plus, Mail, Phone, User, Building2, Users, FileText, Calendar, Settings2, ExternalLink, CheckCircle, AlertTriangle, BadgeCheck, ShieldOff, Clock, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import posthog from 'posthog-js'
 import { PageWrapper } from '@/components/layout/PageWrapper'
+
+const posthogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+)
 
 interface Workshop {
   id: string
@@ -142,6 +147,9 @@ export default function SuperAdminWorkshopsPage() {
         throw new Error(Array.isArray(error) ? error[0]?.message : error)
       }
       toast.success('Workshop created')
+      if (posthogConfigured) {
+        posthog.capture('workshop_created', { has_custom_domain: Boolean(form.domain) })
+      }
       closeCreateForm()
       setForm({ ownerEmail: '', ownerPassword: '', ownerName: '', workshopName: '', workshopSlug: '', domain: '', contactEmail: '', contactPhone: '' })
       fetchWorkshops()
@@ -164,6 +172,7 @@ export default function SuperAdminWorkshopsPage() {
         throw new Error(error)
       }
       toast.success(`Workshop ${status === 'active' ? 'reactivated' : status === 'suspended' ? 'suspended' : 'updated'}`)
+      if (posthogConfigured) posthog.capture('workshop_status_updated', { status })
       fetchWorkshops()
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to update workshop')
@@ -181,6 +190,7 @@ export default function SuperAdminWorkshopsPage() {
         throw new Error(error)
       }
       toast.success('Workshop deactivated')
+      if (posthogConfigured) posthog.capture('workshop_deactivated')
       fetchWorkshops()
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to deactivate workshop')
@@ -208,6 +218,7 @@ export default function SuperAdminWorkshopsPage() {
         throw new Error(error)
       }
       toast.success('Workshop details updated')
+      if (posthogConfigured) posthog.capture('workshop_details_updated')
       setEditingWorkshop(null)
       fetchWorkshops()
     } catch (err: unknown) {

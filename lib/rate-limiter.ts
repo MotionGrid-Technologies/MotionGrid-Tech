@@ -12,7 +12,7 @@ export function getClientIp(req: NextRequest): string {
   // Consider adding a trusted proxy check for non-Vercel deployments.
   const forwarded = req.headers.get('x-forwarded-for')
   if (forwarded) return forwarded.split(',')[0].trim()
-  return (req as any).ip ?? 'unknown'
+  return (req as unknown as { ip?: string }).ip ?? 'unknown'
 }
 
 interface Bucket {

@@ -65,10 +65,6 @@ export function EmailTemplatesForm({ workshopId }: EmailTemplatesFormProps) {
   const [previewing, setPreviewing] = useState(false)
   const [sampleVars, setSampleVars] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    fetchTemplates()
-  }, [workshopId])
-
   async function fetchTemplates() {
     if (!workshopId) { setLoading(false); return }
     setLoading(true)
@@ -86,6 +82,11 @@ export function EmailTemplatesForm({ workshopId }: EmailTemplatesFormProps) {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTemplates()
+  }, [workshopId])
 
   function selectTemplate(t: TemplateData) {
     setSelectedKey(t.template_key)

@@ -112,14 +112,20 @@ body {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--color-signal-dim); }
   50% { opacity: 0.85; box-shadow: 0 0 0 6px transparent; }
 }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .mg-signal-dot {
   animation: mg-pulse 2.8s ease-in-out infinite;
 }
 
-@keyframes mg-banner-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.mg-banner-in {
-  animation: mg-banner-in 0.5s ease-out both;
+/* Filament signal node — scroll-driven travel (JS) + pulse (CSS). */
+.mg-filament-node {
+  offset-rotate: 0deg;
+  animation: mg-pulse 2.8s ease-in-out infinite;
 }

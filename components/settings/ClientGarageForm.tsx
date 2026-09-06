@@ -30,8 +30,7 @@ export function ClientGarageForm({ userId }: ClientGarageFormProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const fetchVehicles = useCallback(async () => {
-    setLoading(true)
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from('vehicles')
       .select('*')
       .eq('user_id', userId)
@@ -48,6 +47,7 @@ export function ClientGarageForm({ userId }: ClientGarageFormProps) {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchVehicles()
   }, [fetchVehicles])
 
@@ -78,7 +78,7 @@ export function ClientGarageForm({ userId }: ClientGarageFormProps) {
     }
 
     setDeletingId(vehicleId)
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('vehicles')
       .delete()
       .eq('id', vehicleId)

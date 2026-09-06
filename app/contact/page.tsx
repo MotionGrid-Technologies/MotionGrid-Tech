@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { Lock, Mail, Phone } from "lucide-react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
@@ -8,11 +9,17 @@ import { PageHero } from "@/components/sections/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { founders, site } from "@/lib/site";
+import posthog from "posthog-js";
 import { submitDemoRequest, type DemoFormState } from "../adminj2-v1/actions";
+
+const posthogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+);
 
 export default function ContactPage() {
   const initialState: DemoFormState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(submitDemoRequest, initialState);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   return (
     <>
@@ -35,7 +42,13 @@ export default function ContactPage() {
               lede="Fill this in and we'll come back with times that work."
               className="mb-10"
             />
-            <form action={formAction} className="flex flex-col gap-5">
+            <form
+              action={formAction}
+              onSubmit={() => {
+                if (posthogConfigured) posthog.capture("demo_request_submitted");
+              }}
+              className="flex flex-col gap-5"
+            >
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Field label="Full name" name="name" error={state.errors?.name} />
                 <Field label="Company" name="company" />
@@ -59,6 +72,21 @@ export default function ContactPage() {
                   <p className="mt-2 text-xs text-signal">{state.errors.message}</p>
                 )}
               </div>
+              <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+                options={{
+                  action: "demo_request",
+                  theme: "dark",
+                  size: "normal",
+                  responseField: false,
+                }}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken("")}
+                onError={() => setTurnstileToken("")}
+              />
+
               {state.message && (
                 <p
                   aria-live="polite"
@@ -67,7 +95,12 @@ export default function ContactPage() {
                   {state.message}
                 </p>
               )}
-              <Button variant="primary" type="submit" className="self-start" disabled={pending}>
+              <Button
+                variant="primary"
+                type="submit"
+                className="self-start"
+                disabled={pending || !turnstileToken}
+              >
                 {pending ? "Sending…" : "Send"}
               </Button>
             </form>

@@ -38,9 +38,9 @@ export function WhatsAppForm({ settings, workshopId, onUpdate }: WhatsAppFormPro
       })
       onUpdate(form)
       toast.success('WhatsApp settings saved!')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save WhatsApp error:', err)
-      toast.error(err.message || 'Failed to save WhatsApp settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save WhatsApp settings')
     } finally {
       setSaving(false)
     }

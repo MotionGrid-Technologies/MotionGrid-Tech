@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import type { TablesUpdate } from '@/types/database'
 import { createSuperAdminClient } from '@/lib/super-admin'
 import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
 import { createDefaultHomePageContent } from '@/lib/homepage-content'
@@ -231,7 +232,7 @@ export async function PATCH(request: Request) {
     const body = UpdateWorkshopSchema.parse(await request.json())
     const adminClient = createSuperAdminClient()
 
-    const updateData: Record<string, unknown> = {}
+    const updateData: TablesUpdate<'workshops'> = {}
     if (body.status !== undefined) {
       updateData.status = body.status
       if (body.status === 'suspended') {
@@ -247,7 +248,7 @@ export async function PATCH(request: Request) {
     if (body.slug !== undefined) updateData.slug = body.slug
     updateData.updated_at = new Date().toISOString()
 
-    const { data: workshop, error } = await (adminClient as any)
+    const { data: workshop, error } = await adminClient
       .from('workshops')
       .update(updateData)
       .eq('id', workshopId)
@@ -284,7 +285,7 @@ export async function DELETE(request: Request) {
 
     const adminClient = createSuperAdminClient()
 
-    const { error } = await (adminClient as any)
+    const { error } = await adminClient
       .from('workshops')
       .update({
         status: 'inactive',

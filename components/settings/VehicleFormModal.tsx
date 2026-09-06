@@ -35,6 +35,7 @@ export function VehicleFormModal({ userId, workshopId, vehicle, onClose, onSaved
 
   useEffect(() => {
     if (vehicle) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         make: vehicle.make ?? '',
         model: vehicle.model ?? '',
@@ -78,13 +79,13 @@ export function VehicleFormModal({ userId, workshopId, vehicle, onClose, onSaved
     let error
 
     if (isEditing && vehicle?.id) {
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from('vehicles')
         .update(payload)
         .eq('id', vehicle.id)
       error = updateError
     } else {
-      const { error: insertError } = await (supabase as any)
+      const { error: insertError } = await supabase
         .from('vehicles')
         .insert(payload)
       error = insertError

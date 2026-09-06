@@ -203,6 +203,7 @@ function SettingsContent() {
 
   useEffect(() => {
     if (selectedWorkshopId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadWorkshopSettings(selectedWorkshopId)
     }
   }, [selectedWorkshopId, loadWorkshopSettings])
