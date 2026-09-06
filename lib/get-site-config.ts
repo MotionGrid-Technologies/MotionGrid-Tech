@@ -249,6 +249,8 @@ export async function getMergedSiteConfig(): Promise<MergedSiteConfig> {
         const supabase = await createSupabaseServerClient()
         const [settingsResult, workshopResult] = await Promise.all([
           supabase
+            // public_business_settings is a Postgres view not present in generated types.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .from('public_business_settings' as any)
             .select('*')
             .eq('workshop_id', workshopId)
@@ -261,7 +263,7 @@ export async function getMergedSiteConfig(): Promise<MergedSiteConfig> {
         ])
 
         let settingsData: Record<string, unknown> | null = null
-        const viewError = (settingsResult as any)?.error as { message?: string } | null
+        const viewError = settingsResult?.error as { message?: string } | null
 
         if (viewError) {
           console.error('[get-site-config] public_business_settings view error:', viewError)
@@ -278,7 +280,7 @@ export async function getMergedSiteConfig(): Promise<MergedSiteConfig> {
           }
           settingsData = (baseData as Record<string, unknown> | null) ?? null
         } else {
-          settingsData = (settingsResult as any)?.data ?? null
+          settingsData = (settingsResult?.data as Record<string, unknown> | null) ?? null
         }
 
         dbSettings = settingsData

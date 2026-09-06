@@ -60,7 +60,7 @@ export function ClientProfileForm({ userId, email, initialData, onSaved }: Clien
 
     setSaving(true)
 
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('profiles')
       .upsert({
         id: userId,

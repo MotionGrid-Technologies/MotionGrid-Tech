@@ -70,9 +70,9 @@ export function WebsiteCopyForm({ initialData, workshopId, onSaved }: WebsiteCop
 
       toast.success('Website copy updated! Refresh the homepage to see changes.')
       onSaved?.()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Website copy save error:', err)
-      toast.error(err.message || 'Failed to save. Please try again.')
+      toast.error(err instanceof Error ? err.message : 'Failed to save. Please try again.')
     } finally {
       setSaving(false)
     }

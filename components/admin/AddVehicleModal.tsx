@@ -34,7 +34,7 @@ export function AddVehicleModal({ userId, workshopId, onClose, onSaved }: AddVeh
     }
 
     setSaving(true)
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('vehicles')
       .insert({
         user_id: userId,

@@ -15,7 +15,13 @@ export default async function SuperAdminLayout({
   }
 
   return (
-    <SuperAdminThemeProvider>
+    <SuperAdminThemeProvider
+      user={{
+        id: session.user.id,
+        email: session.user.email,
+        role: getRoleFromJWT(session),
+      }}
+    >
       {children}
     </SuperAdminThemeProvider>
   )

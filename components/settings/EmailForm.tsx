@@ -61,9 +61,9 @@ export function EmailForm({ settings, workshopId, onUpdate }: EmailFormProps) {
       })
       onUpdate(form)
       toast.success('Email settings saved!')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save email error:', err)
-      toast.error(err.message || 'Failed to save email settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save email settings')
     } finally {
       setSaving(false)
     }

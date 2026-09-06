@@ -37,9 +37,9 @@ export function LegalSettingsForm({
         await saveSuperAdminSettings(workshopId, payload)
       }
       toast.success('PDF footer saved!')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save document footer error:', err)
-      toast.error(err.message || 'Failed to save PDF footer')
+      toast.error(err instanceof Error ? err.message : 'Failed to save PDF footer')
     } finally {
       setSaving(false)
     }

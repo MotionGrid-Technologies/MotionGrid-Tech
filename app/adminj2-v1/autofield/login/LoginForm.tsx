@@ -4,7 +4,12 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import posthog from "posthog-js";
 import { supabase } from "@/lib/supabase";
+
+const posthogConfigured = Boolean(
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
+);
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
@@ -31,6 +36,14 @@ export function LoginForm({ next }: { next: string }) {
       setMessage("This account does not have Super Admin access.");
       setPending(false);
       return;
+    }
+
+    if (posthogConfigured) {
+      posthog.identify(data.session.user.id, {
+        ...(data.session.user.email ? { email: data.session.user.email } : {}),
+        role,
+      });
+      posthog.capture("super_admin_logged_in");
     }
 
     router.replace(next.startsWith("/adminj2-v1/autofield") ? next : "/adminj2-v1/autofield");

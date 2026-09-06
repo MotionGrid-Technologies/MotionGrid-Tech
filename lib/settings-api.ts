@@ -8,8 +8,8 @@ export async function saveSuperAdminSettings(
     body: JSON.stringify({ workshopId, ...payload }),
   })
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error((data as any)?.error || 'Failed to save settings')
+    const data = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new Error(data?.error || 'Failed to save settings')
   }
 }
 
@@ -22,7 +22,7 @@ export async function saveAdminSettings(
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    throw new Error((data as any)?.error || 'Failed to save settings')
+    const data = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new Error(data?.error || 'Failed to save settings')
   }
 }

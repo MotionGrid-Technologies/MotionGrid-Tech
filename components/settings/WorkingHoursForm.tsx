@@ -49,7 +49,7 @@ export function WorkingHoursForm() {
 
   useEffect(() => {
     async function fetchWorkingHours() {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('working_hours')
         .select('*')
         .order('day_of_week')

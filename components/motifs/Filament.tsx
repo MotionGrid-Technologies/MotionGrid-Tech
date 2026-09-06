@@ -17,13 +17,13 @@ export function Filament({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient id="mg-chrome-stroke" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f4f5f6" stopOpacity="0.65" />
-          <stop offset="50%" stopColor="#8a8e96" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#f4f5f6" stopOpacity="0.5" />
+          <stop offset="0%" stopColor="var(--color-chrome-100)" stopOpacity="0.65" />
+          <stop offset="50%" stopColor="var(--color-chrome-500)" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="var(--color-chrome-100)" stopOpacity="0.5" />
         </linearGradient>
         <radialGradient id="mg-signal-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#f2761d" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#f2761d" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-signal)" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="var(--color-signal)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -44,13 +44,13 @@ export function Filament({ className }: { className?: string }) {
       />
 
       {/* nodes */}
-      <circle cx="1250" cy="90" r="7" fill="#dfe1e4" />
-      <circle cx="1250" cy="190" r="6" fill="#8a8e96" />
-      <circle cx="-50" cy="620" r="6" fill="#8a8e96" />
+      <circle cx="1250" cy="90" r="7" fill="var(--color-chrome-200)" />
+      <circle cx="1250" cy="190" r="6" fill="var(--color-chrome-500)" />
+      <circle cx="-50" cy="620" r="6" fill="var(--color-chrome-500)" />
 
       {/* the one signal node */}
       <circle cx="900" cy="230" r="26" fill="url(#mg-signal-glow)" />
-      <circle cx="900" cy="230" r="8" fill="#f2761d" />
+      <circle cx="900" cy="230" r="8" fill="var(--color-signal)" />
     </svg>
   );
 }

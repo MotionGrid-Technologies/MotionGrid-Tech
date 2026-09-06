@@ -34,10 +34,42 @@ async function requireAdminSession(): Promise<void> {
   }
 }
 
+async function verifyTurnstile(token: string): Promise<boolean> {
+  if (!token || token.length > 2048) return false;
+
+  try {
+    const res = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: process.env.TURNSTILE_SECRET_KEY ?? "",
+          response: token,
+        }),
+      }
+    );
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    return data.success === true && data.action === "demo_request";
+  } catch (err) {
+    console.error("[turnstile] siteverify failed", err);
+    return false;
+  }
+}
+
 export async function submitDemoRequest(
   _prev: DemoFormState,
   formData: FormData
 ): Promise<DemoFormState> {
+  const token = String(formData.get("cf-turnstile-response") ?? "");
+
+  if (!token || !(await verifyTurnstile(token))) {
+    return { ok: false, message: "CAPTCHA verification failed. Please try again." };
+  }
+
   const name = String(formData.get("name") ?? "").trim();
   const company = String(formData.get("company") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();

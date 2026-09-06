@@ -90,14 +90,14 @@ export default function AboutPage() {
           />
           <div className="flex flex-col gap-6 text-chrome-500">
             <p className="leading-relaxed">
-              We don't believe in building software for the sake of technology. We
+              We don&apos;t believe in building software for the sake of technology. We
     believe in understanding how a business operates and engineering solutions
     that make that operation faster, simpler, and more reliable.
             </p>
             <p className="leading-relaxed">
               Throughout every project, we work transparently with our clients, sharing
     progress, discussing challenges openly, and refining solutions together.
-    The result is software that's practical, reliable, and built to support
+    The result is software that&apos;s practical, reliable, and built to support
     your business long after launch.
              </p>
           </div>

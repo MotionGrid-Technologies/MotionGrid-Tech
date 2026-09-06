@@ -43,7 +43,7 @@ export function NotificationBell() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', user.id)
@@ -51,15 +51,16 @@ export function NotificationBell() {
       .limit(10)
 
     if (data) {
-      setNotifications(data)
-      setUnreadCount(data.filter((n: Notification) => !n.is_read).length)
+      const notifs = data as Notification[]
+      setNotifications(notifs)
+      setUnreadCount(notifs.filter((n) => !n.is_read).length)
     }
     setLoading(false)
     return user
   }
 
   async function markAsRead(id: string) {
-    await (supabase as any)
+    await supabase
       .from('notifications')
       .update({ is_read: true })
       .eq('id', id)
@@ -74,7 +75,7 @@ export function NotificationBell() {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
     if (unreadIds.length === 0) return
 
-    await (supabase as any)
+    await supabase
       .from('notifications')
       .update({ is_read: true })
       .in('id', unreadIds)

@@ -14,7 +14,7 @@ interface Appointment {
   service_type?: string
   notes?: string | null
   duration_minutes?: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface EditAppointmentModalProps {

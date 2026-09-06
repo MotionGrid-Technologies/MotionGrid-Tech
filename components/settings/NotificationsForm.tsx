@@ -37,9 +37,9 @@ export function NotificationsForm({ settings, workshopId, onUpdate }: Notificati
       })
       onUpdate(form)
       toast.success('Notification preferences saved!')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save notifications error:', err)
-      toast.error(err.message || 'Failed to save notification settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save notification settings')
     } finally {
       setSaving(false)
     }

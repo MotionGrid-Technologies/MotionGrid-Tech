@@ -25,7 +25,7 @@ interface CalendarAppointment {
   customer_name?: string
   service_type?: string
   notes?: string | null
-  [key: string]: any
+  [key: string]: unknown
 }
 
 interface BlockedSlot {

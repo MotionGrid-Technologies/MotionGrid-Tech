@@ -199,9 +199,9 @@ export function HomepageContentForm({
 
       toast.success('Homepage content saved! Refresh the homepage to see changes.')
       onSaved?.()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Homepage content save error:', err)
-      toast.error(err.message || 'Failed to save homepage content')
+      toast.error(err instanceof Error ? err.message : 'Failed to save homepage content')
     } finally {
       setSaving(false)
     }
@@ -212,13 +212,6 @@ export function HomepageContentForm({
       setForm(createDefaultHomePageContent())
     }
   }
-
-  const SectionHeader = ({ icon: Icon, title }: { icon: typeof Sparkles; title: string }) => (
-    <div className="flex items-center gap-2 pb-3 border-b border-grey-light">
-      <Icon size={18} className="text-primary" />
-      <h3 className="text-base font-bold text-grey-dark">{title}</h3>
-    </div>
-  )
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-8">
@@ -677,6 +670,15 @@ export function HomepageContentForm({
         </Button>
       </div>
     </form>
+  )
+}
+
+function SectionHeader({ icon: Icon, title }: { icon: typeof Sparkles; title: string }) {
+  return (
+    <div className="flex items-center gap-2 pb-3 border-b border-grey-light">
+      <Icon size={18} className="text-primary" />
+      <h3 className="text-base font-bold text-grey-dark">{title}</h3>
+    </div>
   )
 }
 

@@ -30,9 +30,10 @@ export function ClientNotificationsForm({ userId, initialData, onSaved }: Client
     setSettings(next)
 
     setSaving(true)
-    const { error } = await (supabase as any)
+    const updateData: Partial<NotificationSettings> = { [field]: next[field] }
+    const { error } = await supabase
       .from('profiles')
-      .update({ [field]: next[field] })
+      .update(updateData)
       .eq('id', userId)
     setSaving(false)
 

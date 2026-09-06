@@ -73,6 +73,12 @@ function clampPercent(value: string) {
   return Math.min(100, Math.max(0, next))
 }
 
+function computeExpiryDate(expiryDays: number): string | null {
+  return expiryDays > 0
+    ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    : null
+}
+
 export function QuoteBuilder({ mode, acceptedQuotes = [], quoteId, initialData }: QuoteBuilderProps) {
   const router = useRouter()
   const isInvoice = mode === 'invoice'
@@ -118,6 +124,8 @@ export function QuoteBuilder({ mode, acceptedQuotes = [], quoteId, initialData }
       const { data: { session } } = await supabase.auth.getSession()
       const workshopId = getWorkshopIdFromSession(session)
       if (!workshopId) return
+      // public_business_settings is a Postgres view not present in generated types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase as any)
         .from('public_business_settings')
         .select('default_deposit_percent, callout_fee, diagnostic_fee, whatsapp_auto_reply, site_name, company_name, phone, contact_email, address, logo_url, primary_color, bank_name, account_holder, account_number, branch_code, terms_conditions, document_footer')
@@ -157,6 +165,7 @@ export function QuoteBuilder({ mode, acceptedQuotes = [], quoteId, initialData }
 
   useEffect(() => {
     if (!initialData) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCustomerName(initialData.customerName)
     setCustomerEmail(initialData.customerEmail ?? '')
     setCustomerPhone(initialData.customerPhone)
@@ -268,7 +277,7 @@ export function QuoteBuilder({ mode, acceptedQuotes = [], quoteId, initialData }
       discountPercent,
       depositPercent,
       depositAmount: depositAmount ? Number(depositAmount) : null,
-      expiryDate: expiryDays > 0 ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null,
+      expiryDate: computeExpiryDate(expiryDays),
       lineItems: cleanRows,
     }
 

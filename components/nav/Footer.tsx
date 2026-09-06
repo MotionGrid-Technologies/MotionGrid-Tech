@@ -7,18 +7,21 @@ export function Footer() {
   return (
     <footer className="border-t border-hairline bg-obsidian-soft">
       <Container className="grid grid-cols-2 gap-10 py-16 md:grid-cols-6">
-        <div className="col-span-2 flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <Image src="/brand/logo.png" alt={site.name} width={32} height={32} className="h-8 w-8" />
-            <span className="font-display text-base text-chrome-100">MotionGrid</span>
-          </div>
-          <p className="max-w-xs text-sm leading-relaxed text-chrome-500">{site.tagline}</p>
+        <div className="col-span-2 flex flex-col items-center gap-5 md:items-start">
+          <Image
+            src="/brand/logo-stacked.svg"
+            alt={site.name}
+            width={262}
+            height={242}
+            className="h-28 w-auto"
+          />
+          <p className="max-w-xs text-center text-sm leading-relaxed text-chrome-500 md:text-left">{site.tagline}</p>
         </div>
 
         {footerColumns.map((col) => (
-          <div key={col.title} className="flex flex-col gap-3">
+          <div key={col.title} className="flex flex-col items-center gap-3 md:items-start">
             <span className="mg-eyebrow">{col.title}</span>
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col items-center gap-2.5 md:items-start">
               {col.links.map((link) => (
                 <li key={link.href}>
                   <Link
