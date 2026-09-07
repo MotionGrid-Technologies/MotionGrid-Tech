@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import type { TablesUpdate } from '@/types/database'
 import { createSuperAdminClient } from '@/lib/super-admin'
-import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
 import { createDefaultHomePageContent } from '@/lib/homepage-content'
+import { guardAdminRequest } from '@/lib/api-auth'
 
 const CreateWorkshopSchema = z.object({
   ownerEmail: z.string().email(),
@@ -17,14 +17,10 @@ const CreateWorkshopSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
+
   try {
-    const sessionClient = await createSupabaseServerClient()
-    const { data: { session } } = await sessionClient.auth.getSession()
-
-    if (!session || getRoleFromJWT(session) !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const raw = await request.json()
 
     const normalized = {
@@ -154,15 +150,11 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
+
   try {
-    const sessionClient = await createSupabaseServerClient()
-    const { data: { session } } = await sessionClient.auth.getSession()
-
-    if (!session || getRoleFromJWT(session) !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const adminClient = createSuperAdminClient()
 
     const { data: workshops, error } = await adminClient
@@ -215,14 +207,10 @@ const UpdateWorkshopSchema = z.object({
 })
 
 export async function PATCH(request: Request) {
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
+
   try {
-    const sessionClient = await createSupabaseServerClient()
-    const { data: { session } } = await sessionClient.auth.getSession()
-
-    if (!session || getRoleFromJWT(session) !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const url = new URL(request.url)
     const workshopId = url.searchParams.get('id')
     if (!workshopId) {
@@ -269,14 +257,10 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
+
   try {
-    const sessionClient = await createSupabaseServerClient()
-    const { data: { session } } = await sessionClient.auth.getSession()
-
-    if (!session || getRoleFromJWT(session) !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const url = new URL(request.url)
     const workshopId = url.searchParams.get('id')
     if (!workshopId) {

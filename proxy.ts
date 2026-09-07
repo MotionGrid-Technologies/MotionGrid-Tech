@@ -1,40 +1,89 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, verifySession } from "@/lib/admin-auth";
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+import { getRoleFromJWT } from '@/lib/role'
 
-// Proxy (formerly middleware in pre-v16 Next.js) runs before the request
-// reaches your app. Here it gates every admin route behind a valid session.
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request })
 
-  // AutoField has its own Supabase role check in its nested layout. It must
-  // not be blocked by MotionGrid's separate local-admin session.
-  if (pathname.startsWith("/adminj2-v1/autofield")) {
-    return NextResponse.next();
+  function redirectWithAuthState(url: URL) {
+    const redirectResponse = NextResponse.redirect(url)
+    response.headers.forEach((value, key) => {
+      const normalizedKey = key.toLowerCase()
+      if (normalizedKey !== 'set-cookie' && !normalizedKey.startsWith('x-middleware-')) {
+        redirectResponse.headers.set(key, value)
+      }
+    })
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
   }
 
-  // The MotionGrid login page must stay reachable while logged out. A valid
-  // remembered session skips it and goes directly to the requested admin page.
-  const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const user = verifySession(session);
-  if (pathname === "/adminj2-v1/login" || pathname === "/adminj2-v1/login/") {
-    if (user) {
-      const dashboardUrl = new URL("/adminj2-v1/dashboard", request.url);
-      return NextResponse.redirect(dashboardUrl);
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet, headers) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+          Object.entries(headers).forEach(([name, value]) =>
+            response.headers.set(name, value)
+          )
+        },
+      },
     }
-    return NextResponse.next();
+  )
+
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
+  const claims = claimsError ? null : claimsData?.claims
+
+  const pathname = request.nextUrl.pathname
+
+  // Public login page: if already authenticated, skip it and go to /dashboard.
+  if (pathname === '/login' || pathname.startsWith('/login/')) {
+    if (claims) {
+      return redirectWithAuthState(new URL('/dashboard', request.url))
+    }
+    return response
   }
 
-  if (!user) {
-    const loginUrl = new URL("/adminj2-v1/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+  // Protected dashboard routes.
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+    if (!claims) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('next', pathname)
+      return redirectWithAuthState(loginUrl)
+    }
+
+    const role = getRoleFromJWT(claims)
+
+    // /dashboard root — role-based landing.
+    if (pathname === '/dashboard' || pathname === '/dashboard/') {
+      const target =
+        role === 'super_admin'
+          ? '/dashboard/admin/autofield'
+          : '/dashboard/admin/dashboard'
+      return redirectWithAuthState(new URL(target, request.url))
+    }
+
+    // /dashboard/admin/autofield/* — super_admin only.
+    if (pathname.startsWith('/dashboard/admin/autofield')) {
+      if (role !== 'super_admin') {
+        return redirectWithAuthState(
+          new URL('/dashboard/admin/dashboard', request.url)
+        )
+      }
+    }
   }
 
-  return NextResponse.next();
+  return response
 }
 
 export const config = {
-  // Only run the auth gate on the adminj2-v1 section. Static assets and the
-  // public site never touch the proxy.
-  matcher: ["/adminj2-v1/:path*"],
-};
+  matcher: ['/login/:path*', '/dashboard/:path*'],
+}

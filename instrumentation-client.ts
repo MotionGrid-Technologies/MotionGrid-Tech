@@ -1,27 +1,35 @@
 import posthog from "posthog-js";
+import { POSTHOG_KEY, POSTHOG_HOST } from "@/lib/posthog";
+import { getCookieConsent } from "@/lib/cookies";
 
-const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
-const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+// This file is Next.js App Router's client-side instrumentation entry point.
+// It runs in the browser only, but the guard is a defensive measure so SSR or
+// the build never touches `window`, `document`, or PostHog.
+if (typeof window !== "undefined" && POSTHOG_KEY && POSTHOG_HOST) {
+  // Until the user has explicitly accepted analytics cookies we must not drop
+  // any tracking cookies. Initialize with in-memory persistence only, then
+  // switch to persistent storage (localStorage+cookie) once consent is granted.
+  const consentAccepted = getCookieConsent() === "accepted";
 
-if (!projectToken) {
-  if (process.env.NODE_ENV === "development") {
-    throw new Error(
-      "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN is configured",
-    );
-  }
-} else if (!host) {
-  if (process.env.NODE_ENV === "development") {
-    throw new Error(
-      "NEXT_PUBLIC_POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once NEXT_PUBLIC_POSTHOG_HOST is configured",
-    );
-  }
-} else {
-  posthog.init(projectToken, {
-    api_host: host,
+  posthog.init(POSTHOG_KEY, {
+    api_host: POSTHOG_HOST,
     defaults: "2026-01-30",
+    // Pageviews are captured manually in <PostHogProvider> (gated behind
+    // consent). Disable auto-capture to avoid double-counting on soft navs.
+    capture_pageview: false,
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
-    opt_out_capturing_by_default: true,
-    opt_out_persistence_by_default: true,
+    persistence: consentAccepted ? "localStorage+cookie" : "memory",
+    opt_out_capturing_by_default: !consentAccepted,
   });
+} else if (process.env.NODE_ENV === "development") {
+  if (!POSTHOG_KEY) {
+    console.warn(
+      "[posthog] NEXT_PUBLIC_POSTHOG_KEY is missing — events are being silently dropped.",
+    );
+  } else if (!POSTHOG_HOST) {
+    console.warn(
+      "[posthog] NEXT_PUBLIC_POSTHOG_HOST is missing — events are being silently dropped.",
+    );
+  }
 }

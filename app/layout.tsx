@@ -5,6 +5,7 @@ import { Navbar } from "@/components/nav/Navbar";
 import { Footer } from "@/components/nav/Footer";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { CookieBanner } from "@/components/analytics/CookieBanner";
+import { JsonLd } from "@/components/JsonLd";
 import { site } from "@/lib/site";
 
 const fraunces = Fraunces({
@@ -75,9 +76,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const softwareApplicationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: site.name,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any",
+    url: site.url,
+    description: site.description,
+    image: `${site.url}/og-image.png`,
+    provider: {
+      "@type": "Organization",
+      name: site.name,
+      url: site.url,
+    },
+  };
+
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col">
+        <JsonLd data={softwareApplicationSchema} />
         <PostHogProvider />
         <CookieBanner />
         <Navbar />

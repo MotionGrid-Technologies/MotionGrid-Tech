@@ -10,7 +10,7 @@ export const site = {
   tagline: "Where we build tomorrow's software today.",
   description:
     "MotionGrid Technologies designs and builds bespoke software, from client platforms to in-house tools, engineered for precision, performance, and longevity.",
-  url: "https://motiongrid.tech", 
+  url: "https://motiongrid.co.za",
   email: "hi@motiongrid.co.za",
 };
 
@@ -20,6 +20,7 @@ export const navItems = [
   { label: "Products", href: "/products" },
   { label: "Technology", href: "/technology" },
   { label: "Industries", href: "/industries#active-industries" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -43,6 +44,7 @@ export const footerColumns = [
   {
     title: "Explore",
     links: [
+      { label: "Blog", href: "/blog" },
       { label: "Live Sandbox", href: "/sandbox" },
       { label: "Micro-Tools", href: "/tools" },
     ],

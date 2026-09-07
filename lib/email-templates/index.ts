@@ -25,6 +25,8 @@ import { APPOINTMENT_TEMPLATES } from './appointments'
 import { WORK_ORDER_TEMPLATES } from './work-orders'
 import { INVOICE_TEMPLATES } from './invoices'
 import { ACCOUNT_TEMPLATES } from './account'
+import { CONTACT_TEMPLATES } from './contact'
+import { MARKETING_TEMPLATES } from './marketing'
 
 export type { TemplateDef, TemplatePayload }
 
@@ -36,6 +38,8 @@ export const DEFAULT_TEMPLATES: Record<string, TemplateDef> = {
   ...WORK_ORDER_TEMPLATES,
   ...INVOICE_TEMPLATES,
   ...ACCOUNT_TEMPLATES,
+  ...CONTACT_TEMPLATES,
+  ...MARKETING_TEMPLATES,
 }
 
 // ── Legacy builders ──────────────────────────────────────────────────

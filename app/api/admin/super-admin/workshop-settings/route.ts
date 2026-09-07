@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSuperAdminClient } from '@/lib/super-admin'
-import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
 import { sanitizeText, sanitizePhone, sanitizeEmail } from '@/lib/input-sanitizer'
-
-async function requireSuperAdmin() {
-  const sessionClient = await createSupabaseServerClient()
-  const { data: { session } } = await sessionClient.auth.getSession()
-  if (!session || getRoleFromJWT(session) !== 'super_admin') {
-    return { authorized: false, error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
-  }
-  return { authorized: true, error: null }
-}
+import { guardAdminRequest } from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
-  try {
-    const { authorized, error } = await requireSuperAdmin()
-    if (!authorized) return error!
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
 
+  try {
     const workshopId = request.nextUrl.searchParams.get('workshopId')
     if (!workshopId) {
       return NextResponse.json({ error: 'workshopId is required' }, { status: 400 })
@@ -43,10 +34,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { authorized, error } = await requireSuperAdmin()
-    if (!authorized) return error!
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
 
+  try {
     const body = await request.json()
     const workshopId = body.workshopId as string | undefined
 
@@ -54,7 +45,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'workshopId is required' }, { status: 400 })
     }
 
-    const { workshopId: _w, ...fields } = body as Record<string, unknown>
+    const fields = { ...body } as Record<string, unknown>
+    delete fields.workshopId
 
     const payload: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(fields)) {

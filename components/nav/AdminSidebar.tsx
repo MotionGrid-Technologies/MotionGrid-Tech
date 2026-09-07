@@ -9,30 +9,34 @@ import {
   BarChart3,
   Wrench,
   ChevronDown,
+  Mail,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const items = [
-  { label: "Dashboard", href: "/adminj2-v1/dashboard", icon: LayoutDashboard },
-  { label: "SEO", href: "/adminj2-v1/seo", icon: Search },
-  { label: "Stats & Reports", href: "/adminj2-v1/stats", icon: BarChart3 },
+  { label: "Dashboard", href: "/dashboard/admin/dashboard", icon: LayoutDashboard },
+  { label: "SEO", href: "/dashboard/admin/seo", icon: Search },
+  { label: "Stats & Reports", href: "/dashboard/admin/stats", icon: BarChart3 },
+  { label: "Blog", href: "/dashboard/admin/marketing/blog", icon: Newspaper },
+  { label: "Marketing Emails", href: "/dashboard/admin/marketing/emails", icon: Mail },
 ];
 
 const autofieldChildren = [
-  { label: "Overview", href: "/adminj2-v1/autofield" },
-  { label: "All Workshops", href: "/adminj2-v1/autofield/workshops" },
-  { label: "New Workshops", href: "/adminj2-v1/autofield/workshops?new=true" },
-  { label: "All Users", href: "/adminj2-v1/autofield/users" },
-  { label: "Workshop Settings", href: "/adminj2-v1/autofield/settings" },
-  { label: "SEO Registry", href: "/adminj2-v1/autofield/seo" },
-  { label: "Stats n Reports", href: "/adminj2-v1/autofield/stats" },
+  { label: "Overview", href: "/dashboard/admin/autofield" },
+  { label: "All Workshops", href: "/dashboard/admin/autofield/workshops" },
+  { label: "New Workshops", href: "/dashboard/admin/autofield/workshops?new=true" },
+  { label: "All Users", href: "/dashboard/admin/autofield/users" },
+  { label: "Workshop Settings", href: "/dashboard/admin/autofield/settings" },
+  { label: "SEO Registry", href: "/dashboard/admin/autofield/seo" },
+  { label: "Stats n Reports", href: "/dashboard/admin/autofield/stats" },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const autofieldActive =
-    pathname === "/adminj2-v1/autofield" ||
-    pathname.startsWith("/adminj2-v1/autofield/");
+    pathname === "/dashboard/admin/autofield" ||
+    pathname.startsWith("/dashboard/admin/autofield/");
   const [autofieldOpen, setAutofieldOpen] = useState(autofieldActive);
 
   return (
