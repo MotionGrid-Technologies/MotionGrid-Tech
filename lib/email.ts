@@ -58,8 +58,8 @@ async function resolveSender(workshopId?: string | null): Promise<{
   replyTo?: string
   config: EmailProviderConfig | null
 }> {
-  const defaultName = 'Autofield Technics'
-  const defaultFrom = `Autofield Technics <onboarding@resend.dev>`
+  const defaultName = 'Motion Grid'
+  const defaultFrom = `Motion Grid <hi@updates.motiongrid.co.za>`
   const config = await fetchEmailConfig(workshopId)
 
   if (!config) {
@@ -67,7 +67,7 @@ async function resolveSender(workshopId?: string | null): Promise<{
   }
 
   const name = config.email_display_name || defaultName
-  const from = config.email_from || process.env.EMAIL_FROM || `${name} <onboarding@resend.dev>`
+  const from = config.email_from || process.env.EMAIL_FROM || `${name} <hi@updates.motiongrid.co.za>`
 
   return {
     from,
@@ -166,7 +166,6 @@ async function logEmail(params: {
 }
 
 export async function sendEmail(params: SendEmailParams) {
-  const resend = getResend()
   const sender = await resolveSender(params.workshopId)
 
   // Resolve template (override from DB → hardcoded default)
@@ -209,7 +208,7 @@ export async function sendEmail(params: SendEmailParams) {
         subject,
         html,
         text,
-        replyTo: params.replyTo || sender.replyTo,
+        replyTo: params.replyTo || sender.replyTo || 'hi@motiongrid.co.za',
       })
     } else {
       const emailConfig: { from: string; to: string; subject: string; html: string; text?: string; replyTo?: string } = {
@@ -221,6 +220,8 @@ export async function sendEmail(params: SendEmailParams) {
       if (text) emailConfig.text = text
       if (params.replyTo || sender.replyTo) {
         emailConfig.replyTo = params.replyTo || sender.replyTo
+      } else {
+        emailConfig.replyTo = 'hi@motiongrid.co.za'
       }
 
       const resend = getResend()

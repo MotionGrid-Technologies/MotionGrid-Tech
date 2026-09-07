@@ -50,6 +50,61 @@ export const QUOTE_TEMPLATES: Record<string, TemplateDef> = {
     ].join(''),
   },
 
+  quote_notification_admin: {
+    subject: 'New quote request from {{customerName}}',
+    text: [
+      'New quote request received.',
+      '',
+      'Customer: {{customerName}}',
+      'Phone: {{customerPhone}}',
+      'Vehicle: {{vehicleInfo}}',
+      'Service: {{serviceType}}',
+      'Details: {{description}}',
+      '',
+      'View in dashboard: {{dashboardUrl}}',
+    ].join('\n'),
+    html: [
+      '<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">',
+      '<h2>New Quote Request</h2>',
+      '<p><strong>{{customerName}}</strong> requested a quote.</p>',
+      '<table style="width:100%;border-collapse:collapse;margin:16px 0;">',
+      '<tr><td style="padding:6px 0;"><strong>Phone</strong></td><td>{{customerPhone}}</td></tr>',
+      '<tr><td style="padding:6px 0;"><strong>Vehicle</strong></td><td>{{vehicleInfo}}</td></tr>',
+      '<tr><td style="padding:6px 0;"><strong>Service</strong></td><td>{{serviceType}}</td></tr>',
+      '</table>',
+      '<div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;">',
+      '<p style="margin:0;"><strong>Details</strong></p>',
+      '<p style="margin:8px 0 0;">{{description}}</p>',
+      '</div>',
+      '<a href="{{dashboardUrl}}" style="display:inline-block;background:#5B9BD5;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600;">View in Dashboard</a>',
+      '</div>',
+    ].join(''),
+  },
+
+  quote_submitted_confirmation: {
+    subject: 'We received your quote request',
+    text: [
+      'Hi {{customerName}},',
+      '',
+      'Thanks for requesting a quote. We have received your request and will be in touch shortly.',
+      '',
+      'Vehicle: {{vehicleInfo}}',
+      'Service: {{serviceType}}',
+      '',
+      'Thanks,',
+      '{{businessName}}',
+    ].join('\n'),
+    html: [
+      '<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">',
+      '<h2>{{businessName}}</h2>',
+      '<p>Hi {{customerName}},</p>',
+      '<p>Thanks for requesting a quote. We have received your request and will be in touch shortly.</p>',
+      '<table style="width:100%;margin:16px 0;"><tr><td><strong>Vehicle</strong></td><td>{{vehicleInfo}}</td></tr><tr><td><strong>Service</strong></td><td>{{serviceType}}</td></tr></table>',
+      '<p style="font-size:12px;color:#9ca3af;margin-top:24px;">{{businessName}}</p>',
+      '</div>',
+    ].join(''),
+  },
+
   quote_declined_alert: {
     subject: 'Quote declined by {{customerName}}',
     text: [

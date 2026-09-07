@@ -14,6 +14,13 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+// Allow Next/Image to optimize images served from MotionGrid's Supabase
+// Storage (SITE_SUPABASE_URL). The host is read from the environment at config
+// time so it is never hardcoded.
+const siteSupabaseHost = process.env.SITE_SUPABASE_URL
+  ? new URL(process.env.SITE_SUPABASE_URL).hostname
+  : "";
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -23,6 +30,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: siteSupabaseHost
+    ? {
+        remotePatterns: [
+          {
+            protocol: "https",
+            hostname: siteSupabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ],
+      }
+    : undefined,
 };
 
 export default nextConfig;

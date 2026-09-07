@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSuperAdminClient } from '@/lib/super-admin'
 import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
 import { sanitizeText, sanitizePhone, sanitizeEmail } from '@/lib/input-sanitizer'
+import { checkRateLimit, getClientIpFromHeaders } from '@/lib/rate-limiter'
+
+function isRateLimited(request: NextRequest): boolean {
+  const ip = getClientIpFromHeaders(request.headers)
+  const { allowed } = checkRateLimit(`admin:${ip}`, { maxRequests: 30, windowMs: 60_000 })
+  return !allowed
+}
 
 async function requireSuperAdmin() {
   const sessionClient = await createSupabaseServerClient()
@@ -13,6 +20,9 @@ async function requireSuperAdmin() {
 }
 
 export async function GET(request: NextRequest) {
+  if (isRateLimited(request)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   try {
     const { authorized, error } = await requireSuperAdmin()
     if (!authorized) return error!
@@ -43,6 +53,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (isRateLimited(request)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   try {
     const { authorized, error } = await requireSuperAdmin()
     if (!authorized) return error!

@@ -1,8 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createSuperAdminClient } from '@/lib/super-admin'
 import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
+import { checkRateLimit, getClientIpFromHeaders } from '@/lib/rate-limiter'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const ip = getClientIpFromHeaders(request.headers)
+  const { allowed } = checkRateLimit(`admin:${ip}`, { maxRequests: 30, windowMs: 60_000 })
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   try {
     const sessionClient = await createSupabaseServerClient()
     const { data: { session } } = await sessionClient.auth.getSession()

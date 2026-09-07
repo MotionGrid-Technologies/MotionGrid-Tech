@@ -1,9 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 
 type Tab = "html" | "css" | "js";
+
+// The sandbox iframe is a public playground: it runs arbitrary, untrusted
+// user code. These constants harden the boundary between that code and the
+// parent page.
+const LOG_LEVELS = ["log", "warn", "error"] as const;
+type LogLevel = (typeof LOG_LEVELS)[number];
+const VALID_LEVELS: ReadonlySet<string> = new Set(LOG_LEVELS);
+
+// Cap the length of any single console message so a malicious/hostile script
+// cannot flood React state and freeze the browser.
+const MAX_LOG_LENGTH = 1000;
+// Keep the in-memory log ring bounded.
+const MAX_LOG_ENTRIES = 50;
+
+// Content-Security-Policy enforced inside the iframe. `frame-ancestors` and
+// `navigate-to` are intentionally omitted: browsers ignore them in <meta>
+// tags (they only apply via HTTP headers).
+const SANDBOX_CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline'",
+  "style-src 'unsafe-inline'",
+  "connect-src 'none'",
+  "img-src 'none'",
+  "font-src 'none'",
+  "object-src 'none'",
+  "form-action 'none'",
+  "base-uri 'none'",
+].join("; ");
 
 const DEFAULTS: Record<Tab, string> = {
   html: `<div class="grid">
@@ -53,10 +81,17 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 function buildSrcDoc(html: string, css: string, js: string) {
+  // postMessage must target the parent's exact origin — never "*". The iframe
+  // is sandboxed without allow-same-origin (opaque origin), so it cannot read
+  // parent.location itself; we inject the origin at build time instead.
+  const targetOrigin =
+    typeof window !== "undefined" ? window.location.origin : "null";
+
   return `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="${SANDBOX_CSP}" />
     <style>${css}</style>
   </head>
   <body>
@@ -66,7 +101,7 @@ function buildSrcDoc(html: string, css: string, js: string) {
         try {
           parent.postMessage(
             { source: "mg-sandbox", level, message: Array.from(args).map(String).join(" ") },
-            "*"
+            ${JSON.stringify(targetOrigin)}
           );
         } catch (e) {}
       };
@@ -93,7 +128,7 @@ export function CodePlayground() {
   const [srcDoc, setSrcDoc] = useState(() =>
     buildSrcDoc(DEFAULTS.html, DEFAULTS.css, DEFAULTS.js)
   );
-  const [logs, setLogs] = useState<{ level: string; message: string }[]>([]);
+  const [logs, setLogs] = useState<{ level: LogLevel; message: string }[]>([]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -104,9 +139,24 @@ export function CodePlayground() {
 
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      if (e.data?.source === "mg-sandbox") {
-        setLogs((prev) => [...prev.slice(-49), { level: e.data.level, message: e.data.message }]);
-      }
+      // Only accept messages from our own sandbox iframe. Because the iframe
+      // uses a same-origin srcDoc, its messages carry the parent's origin;
+      // anything else (another frame, an extension, a spoofed postMessage) is
+      // rejected outright.
+      if (e.origin !== window.location.origin) return;
+
+      const data = e.data;
+      if (!data || typeof data !== "object" || data.source !== "mg-sandbox") return;
+
+      // Validate the log level against the allow-list.
+      if (typeof data.level !== "string" || !VALID_LEVELS.has(data.level)) return;
+
+      // Coerce and clamp the message payload (strict string, length-capped).
+      let message = typeof data.message === "string" ? data.message : String(data.message ?? "");
+      if (message.length > MAX_LOG_LENGTH) message = message.slice(0, MAX_LOG_LENGTH);
+
+      const level = data.level as LogLevel;
+      setLogs((prev) => [...prev.slice(-(MAX_LOG_ENTRIES - 1)), { level, message }]);
     }
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
@@ -177,6 +227,7 @@ export function CodePlayground() {
             title="Sandbox preview"
             srcDoc={srcDoc}
             sandbox="allow-scripts"
+            referrerPolicy="no-referrer"
             className="h-[280px] w-full bg-obsidian-soft"
           />
           <div className="h-[80px] overflow-y-auto border-t border-hairline-soft bg-obsidian-soft px-4 py-2 font-mono text-xs">

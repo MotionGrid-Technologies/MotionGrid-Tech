@@ -2,10 +2,7 @@
 
 import { ReactNode, useEffect } from 'react'
 import posthog from 'posthog-js'
-
-const posthogConfigured = Boolean(
-  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
-)
+import { isPostHogConfigured } from '@/lib/posthog'
 
 interface SuperAdminThemeProviderProps {
   children: ReactNode
@@ -19,7 +16,7 @@ interface SuperAdminThemeProviderProps {
 export function SuperAdminThemeProvider({ children, user }: SuperAdminThemeProviderProps) {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'motion-grid')
-    if (posthogConfigured) {
+    if (isPostHogConfigured) {
       posthog.identify(user.id, {
         ...(user.email ? { email: user.email } : {}),
         role: user.role,
