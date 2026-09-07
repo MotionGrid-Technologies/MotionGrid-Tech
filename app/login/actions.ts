@@ -21,7 +21,7 @@ export async function signInWithPassword(
 
   // Rate limit: 5 attempts per IP per 15 minutes (brute-force protection).
   const ip = getClientIpFromHeaders(await headers());
-  const { allowed } = checkRateLimit(`login:${ip}`, {
+  const { allowed } = await checkRateLimit(`login:${ip}`, {
     maxRequests: 5,
     windowMs: 15 * 60 * 1000,
   });
@@ -47,7 +47,8 @@ export async function signInWithPassword(
     return { ok: false, message: "Invalid email or password." };
   }
 
-  const role = getRoleFromJWT(data.session);
+  const { data: claimsData } = await supabase.auth.getClaims(data.session.access_token);
+  const role = getRoleFromJWT(claimsData?.claims);
 
   if (role === "super_admin") {
     redirect("/dashboard/admin/autofield");

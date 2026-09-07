@@ -29,9 +29,9 @@ export type DemoFormState = {
 
 async function requireDashboardAccess(): Promise<boolean> {
   const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return false;
-  const role = getRoleFromJWT(session);
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) return false;
+  const role = getRoleFromJWT(data.claims);
   return role === "admin" || role === "super_admin";
 }
 
@@ -41,7 +41,7 @@ export async function submitDemoRequest(
 ): Promise<DemoFormState> {
   // Rate limit: 3 submissions per IP per 5 minutes.
   const ip = getClientIpFromHeaders(await headers());
-  const { allowed } = checkRateLimit(`demo:${ip}`, {
+  const { allowed } = await checkRateLimit(`demo:${ip}`, {
     maxRequests: 3,
     windowMs: 5 * 60 * 1000,
   });

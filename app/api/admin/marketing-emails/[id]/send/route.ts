@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 import { getMarketingEmail } from '@/lib/marketing-emails-store'
 import { sendMarketingEmail } from '@/lib/marketing-email'
 import { renderMergeTags } from '@/lib/marketing-merge-tags'
@@ -12,12 +12,9 @@ const SendSchema = z.object({
 type Params = { params: Promise<{ id: string }> }
 
 export async function POST(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     const email = await getMarketingEmail(id)

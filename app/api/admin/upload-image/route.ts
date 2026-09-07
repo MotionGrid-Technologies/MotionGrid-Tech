@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 
 // ---------------------------------------------------------------------------
 // Image upload for blog featured images and inline Tiptap content.
@@ -37,12 +37,8 @@ function extFromType(contentType: string): string {
 }
 
 export async function POST(request: Request) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
 
   let file: File
   try {

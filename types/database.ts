@@ -1931,6 +1931,18 @@ export type Database = {
       }
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_identifier: string
+          p_max_requests: number
+          p_window_ms: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          reset_ms: number
+        }[]
+      }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       current_user_role: { Args: never; Returns: string }
       current_workshop_id: { Args: never; Returns: string }

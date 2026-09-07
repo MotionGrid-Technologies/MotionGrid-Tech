@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 type Tab = "html" | "css" | "js";
@@ -123,6 +123,7 @@ function buildSrcDoc(html: string, css: string, js: string) {
 }
 
 export function CodePlayground() {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>("html");
   const [code, setCode] = useState(DEFAULTS);
   const [srcDoc, setSrcDoc] = useState(() =>
@@ -139,11 +140,10 @@ export function CodePlayground() {
 
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
-      // Only accept messages from our own sandbox iframe. Because the iframe
-      // uses a same-origin srcDoc, its messages carry the parent's origin;
-      // anything else (another frame, an extension, a spoofed postMessage) is
-      // rejected outright.
-      if (e.origin !== window.location.origin) return;
+      // A sandbox without allow-same-origin has an opaque "null" origin. The
+      // Window reference, rather than origin alone, establishes that this
+      // message came from this component's iframe.
+      if (e.source !== iframeRef.current?.contentWindow || e.origin !== "null") return;
 
       const data = e.data;
       if (!data || typeof data !== "object" || data.source !== "mg-sandbox") return;
@@ -224,6 +224,7 @@ export function CodePlayground() {
             <span className="mg-eyebrow">Live preview</span>
           </div>
           <iframe
+            ref={iframeRef}
             title="Sandbox preview"
             srcDoc={srcDoc}
             sandbox="allow-scripts"

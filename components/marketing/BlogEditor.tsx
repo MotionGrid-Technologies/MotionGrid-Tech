@@ -346,6 +346,7 @@ function Toolbar({ editor }: { editor: Editor | null }) {
           <Palette size={15} />
           <input
             type="color"
+            aria-label="Text color"
             className="h-0 w-0 opacity-0"
             onChange={(e) => chain().setColor(e.target.value).run()}
           />

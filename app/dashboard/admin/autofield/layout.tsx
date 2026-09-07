@@ -9,19 +9,21 @@ export default async function AutofieldAdminLayout({
 }) {
   const supabase = await createSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const role = getRoleFromJWT(claimsData?.claims);
 
-  if (!session || getRoleFromJWT(session) !== "super_admin") {
+  if (!user || role !== "super_admin") {
     redirect("/login");
   }
 
   return (
     <SuperAdminThemeProvider
       user={{
-        id: session.user.id,
-        email: session.user.email,
-        role: getRoleFromJWT(session),
+        id: user.id,
+        email: user.email,
+        role,
       }}
     >
       {children}

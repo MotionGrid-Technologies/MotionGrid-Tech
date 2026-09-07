@@ -1,24 +1,30 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 import { listMarketingEmails, createMarketingEmail } from '@/lib/marketing-emails-store'
+
+const MAX_HTML_BODY_LENGTH = 500_000
 
 const CreateSchema = z.object({
   name: z.string().min(1).max(200),
   subject: z.string().max(500).default(''),
-  html_body: z.string().min(1),
+  html_body: z.string().min(1).max(MAX_HTML_BODY_LENGTH),
   text_body: z.string().nullable().optional(),
 })
 
 export async function GET(request: Request) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
-    const emails = await listMarketingEmails()
+    const { searchParams } = new URL(request.url)
+    const parsedLimit = Number.parseInt(searchParams.get('limit') ?? '', 10)
+    const parsedOffset = Number.parseInt(searchParams.get('offset') ?? '', 10)
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.min(100, Math.max(1, parsedLimit))
+      : 50
+    const offset = Number.isFinite(parsedOffset) ? Math.max(0, parsedOffset) : 0
+    const emails = await listMarketingEmails(limit, offset)
     return NextResponse.json({ emails })
   } catch (error) {
     console.error('[marketing-emails] list failed', error)
@@ -27,12 +33,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const body = CreateSchema.parse(await request.json())
     const email = await createMarketingEmail({

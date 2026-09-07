@@ -18,7 +18,7 @@ This repo houses **MotionGrid's marketing site** BUT also serves as the **Autofi
 | **Autofield** (SuperAdmin backdoor) | Autofield Supabase (`ueqptaohroqxmwrddicj`) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
 | **Edge Function** (`supabase/functions/custom-access-token`) | Autofield Supabase | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Deno runtime config) |
 
-- `super_admin` login authenticates against **Autofield's** Supabase (`app/login`).
+- `super_admin` login authenticates against **Autofield's** Supabase (`/login`).
 - MotionGrid's own identity/auth (future client portal, marketing data) lives in **MotionGrid's** Supabase — NOT the same project.
 - Do **not** collapse these. The MotionGrid project uses the `SITE_SUPABASE_*` prefix; the Autofield app keeps the `NEXT_PUBLIC_SUPABASE_*` prefix; the Edge Function reads plain `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from its own runtime config.
 

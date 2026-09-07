@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/nav/AdminSidebar";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { createSupabaseServerClient, getRoleFromJWT } from "@/lib/supabaseServer";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: `%s — Admin · MotionGrid` },
@@ -15,12 +15,16 @@ export default async function AdminLayout({
 }) {
   const supabase = await createSupabaseServerClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
+
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const role = getRoleFromJWT(claimsData?.claims);
+  if (role !== "admin" && role !== "super_admin") redirect("/login");
 
   return (
     <div className="fixed inset-0 z-40 flex min-h-screen w-full overflow-hidden bg-black">

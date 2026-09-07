@@ -151,7 +151,6 @@ export function Navbar() {
             width={164}
             height={56}
             className="h-7 w-auto"
-            priority
           />
           <button
             ref={closeRef}

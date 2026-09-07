@@ -13,6 +13,7 @@ import {
   listSimilarBlogPosts,
 } from "@/lib/blog-store";
 import { estimateReadingTime } from "@/lib/blog-reading-time";
+import { sanitizeBlogHtml } from "@/lib/blog-html";
 import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -171,7 +172,10 @@ export default async function BlogPostPage({
           )}
 
           {/* Content */}
-          <div className="blog-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+          <div
+            className="blog-content"
+            dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(post.content) }}
+          />
 
           {/* Author card */}
           <aside className="flex flex-col gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40 p-6 sm:flex-row sm:items-center">

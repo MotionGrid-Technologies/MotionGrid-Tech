@@ -5,6 +5,18 @@ import { getRoleFromJWT } from '@/lib/role'
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
 
+  function redirectWithAuthState(url: URL) {
+    const redirectResponse = NextResponse.redirect(url)
+    response.headers.forEach((value, key) => {
+      const normalizedKey = key.toLowerCase()
+      if (normalizedKey !== 'set-cookie' && !normalizedKey.startsWith('x-middleware-')) {
+        redirectResponse.headers.set(key, value)
+      }
+    })
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie))
+    return redirectResponse
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -13,40 +25,42 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
+          )
+          Object.entries(headers).forEach(([name, value]) =>
+            response.headers.set(name, value)
           )
         },
       },
     }
   )
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
+  const claims = claimsError ? null : claimsData?.claims
 
   const pathname = request.nextUrl.pathname
 
   // Public login page: if already authenticated, skip it and go to /dashboard.
   if (pathname === '/login' || pathname.startsWith('/login/')) {
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (claims) {
+      return redirectWithAuthState(new URL('/dashboard', request.url))
     }
     return response
   }
 
   // Protected dashboard routes.
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
-    if (!session) {
+    if (!claims) {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('next', pathname)
-      return NextResponse.redirect(loginUrl)
+      return redirectWithAuthState(loginUrl)
     }
 
-    const role = getRoleFromJWT(session)
+    const role = getRoleFromJWT(claims)
 
     // /dashboard root — role-based landing.
     if (pathname === '/dashboard' || pathname === '/dashboard/') {
@@ -54,13 +68,13 @@ export async function proxy(request: NextRequest) {
         role === 'super_admin'
           ? '/dashboard/admin/autofield'
           : '/dashboard/admin/dashboard'
-      return NextResponse.redirect(new URL(target, request.url))
+      return redirectWithAuthState(new URL(target, request.url))
     }
 
     // /dashboard/admin/autofield/* — super_admin only.
     if (pathname.startsWith('/dashboard/admin/autofield')) {
       if (role !== 'super_admin') {
-        return NextResponse.redirect(
+        return redirectWithAuthState(
           new URL('/dashboard/admin/dashboard', request.url)
         )
       }

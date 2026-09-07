@@ -1,14 +1,28 @@
 import { NextRequest } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
 
 /**
- * In-memory token bucket rate limiter.
- * Tracks requests per identifier (usually an IP) within a time window.
- * No external dependencies — pure Node.js Map.
- *
- * Note: state is process-local, so limits are per-serverless-instance rather
- * than globally shared. Acceptable for the current traffic; move to Redis or
- * Vercel KV for cross-instance enforcement later if needed.
+ * Fixed-window rate limiter backed by MotionGrid's shared Supabase Postgres.
+ * The check_rate_limit RPC performs its increment and rollover atomically, so
+ * limits remain consistent across server instances and cold starts.
  */
+
+const SITE_SUPABASE_URL = process.env.SITE_SUPABASE_URL
+const SITE_SUPABASE_SERVICE_ROLE_KEY = process.env.SITE_SUPABASE_SERVICE_ROLE_KEY
+
+function createRateLimitClient() {
+  if (!SITE_SUPABASE_URL || !SITE_SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      'Rate limiting is not configured. Set SITE_SUPABASE_URL and ' +
+        'SITE_SUPABASE_SERVICE_ROLE_KEY in the environment.'
+    )
+  }
+
+  return createClient<Database>(SITE_SUPABASE_URL, SITE_SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  })
+}
 
 /**
  * Extract the client IP from a standard Headers object (works for both API
@@ -29,61 +43,29 @@ export function getClientIp(req: NextRequest): string {
   return (req as unknown as { ip?: string }).ip ?? 'unknown'
 }
 
-interface Bucket {
-  tokens: number
-  lastRefill: number
-}
-
-const store = new Map<string, Bucket>()
-
 interface RateLimitOptions {
   maxRequests?: number   // tokens per window (default: 5)
   windowMs?: number      // window size in ms (default: 60000 = 1 min)
 }
 
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   options: RateLimitOptions = {}
-): { allowed: boolean; remaining: number; resetMs: number } {
+): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
   const { maxRequests = 5, windowMs = 60_000 } = options
-  const now = Date.now()
+  const { data, error } = await createRateLimitClient().rpc('check_rate_limit', {
+    p_identifier: identifier,
+    p_max_requests: maxRequests,
+    p_window_ms: windowMs,
+  })
 
-  const bucket = store.get(identifier)
+  if (error) throw error
+  const result = data?.[0]
+  if (!result) throw new Error('Rate limiter returned no result')
 
-  if (!bucket) {
-    store.set(identifier, { tokens: maxRequests - 1, lastRefill: now })
-    return { allowed: true, remaining: maxRequests - 1, resetMs: windowMs }
-  }
-
-  const elapsed = now - bucket.lastRefill
-  const tokensToAdd = Math.floor(elapsed / windowMs) * maxRequests
-
-  if (tokensToAdd > 0) {
-    bucket.tokens = Math.min(bucket.tokens + tokensToAdd, maxRequests)
-    bucket.lastRefill = now
-  }
-
-  // Time until the next refill boundary. When a refill just occurred, that is
-  // a full window from now; otherwise it is the remainder of the current one.
-  const resetMs = tokensToAdd > 0 ? windowMs : windowMs - (elapsed % windowMs)
-
-  if (bucket.tokens > 0) {
-    bucket.tokens -= 1
-    return { allowed: true, remaining: bucket.tokens, resetMs }
-  }
-
-  return { allowed: false, remaining: 0, resetMs }
-}
-
-/** Clean up expired entries periodically (memory optimization). */
-export function cleanupRateLimitStore(maxAgeMs: number = 5 * 60_000): void {
-  const now = Date.now()
-  for (const [key, bucket] of store.entries()) {
-    if (now - bucket.lastRefill > maxAgeMs) {
-      store.delete(key)
-    }
+  return {
+    allowed: result.allowed,
+    remaining: result.remaining,
+    resetMs: result.reset_ms,
   }
 }
-
-// Auto-cleanup every 5 minutes
-setInterval(() => cleanupRateLimitStore(), 5 * 60_000)

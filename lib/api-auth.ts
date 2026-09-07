@@ -1,18 +1,39 @@
+import { NextResponse } from 'next/server'
 import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
 import { checkRateLimit, getClientIpFromHeaders } from '@/lib/rate-limiter'
 
-// Shared guards for admin API route handlers.
+type AdminRole = 'admin' | 'super_admin'
 
-export function isRateLimited(request: Request): boolean {
+async function isRateLimited(request: Request): Promise<boolean> {
   const ip = getClientIpFromHeaders(request.headers)
-  const { allowed } = checkRateLimit(`admin:${ip}`, { maxRequests: 30, windowMs: 60_000 })
+  const { allowed } = await checkRateLimit(`admin:${ip}`, {
+    maxRequests: 30,
+    windowMs: 60_000,
+  })
   return !allowed
 }
 
-export async function isAdminAuthorized(): Promise<boolean> {
+async function getAuthorizedRole(): Promise<ReturnType<typeof getRoleFromJWT> | null> {
   const supabase = await createSupabaseServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return false
-  const role = getRoleFromJWT(session)
-  return role === 'admin' || role === 'super_admin'
+  const { data, error } = await supabase.auth.getClaims()
+  return error || !data?.claims ? null : getRoleFromJWT(data.claims)
+}
+
+export async function guardAdminRequest(
+  request: Request,
+  requiredRole: AdminRole = 'admin',
+): Promise<NextResponse | null> {
+  if (await isRateLimited(request)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
+  const role = await getAuthorizedRole()
+  const authorized =
+    requiredRole === 'super_admin'
+      ? role === 'super_admin'
+      : role === 'admin' || role === 'super_admin'
+
+  return authorized
+    ? null
+    : NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 }

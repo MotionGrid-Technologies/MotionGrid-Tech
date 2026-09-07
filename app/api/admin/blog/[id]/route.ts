@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 import { getBlogPostById, updateBlogPost, deleteBlogPost } from '@/lib/blog-store'
 import { generateSlug } from '@/lib/blog-slug'
+import { sanitizeBlogHtml } from '@/lib/blog-html'
 
 const UpdateSchema = z.object({
   title: z.string().min(1).max(300),
@@ -22,12 +23,9 @@ const UpdateSchema = z.object({
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     const post = await getBlogPostById(id)
@@ -42,12 +40,9 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 export async function PUT(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     const body = UpdateSchema.parse(await request.json())
@@ -56,7 +51,7 @@ export async function PUT(request: Request, { params }: Params) {
       title: body.title,
       slug: body.slug || generateSlug(body.title),
       excerpt: body.excerpt ?? null,
-      content: body.content ?? '',
+      content: sanitizeBlogHtml(body.content ?? ''),
       featuredImageUrl: body.featuredImageUrl ?? null,
       featuredImageAlt: body.featuredImageAlt ?? null,
       authorId: body.authorId ?? null,
@@ -81,12 +76,9 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     await deleteBlogPost(id)

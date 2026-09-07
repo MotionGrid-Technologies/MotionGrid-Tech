@@ -27,6 +27,7 @@ export function CategoryFilter({ categories, current }: CategoryFilterProps) {
   return (
     <div className="relative inline-block min-w-[220px]">
       <select
+        aria-label="Filter blog posts by category"
         value={current}
         onChange={(e) => onChange(e.target.value)}
         className="w-full appearance-none rounded-[var(--radius-mg)] border border-hairline bg-graphite/40 py-2.5 pl-3 pr-9 text-sm text-chrome-100 focus:border-signal focus:outline-none"

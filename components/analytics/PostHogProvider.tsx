@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { getCookieConsent } from "@/lib/cookies";
 import { isPostHogConfigured } from "@/lib/posthog";
+import { buildPostHogPageviewUrl } from "@/lib/posthog-pageview";
 
 // Captures a $pageview for the initial load and every client-side navigation.
 // Wrapped in <Suspense> because useSearchParams opts the route into dynamic
@@ -16,9 +17,12 @@ function PostHogPageView() {
   useEffect(() => {
     if (!isPostHogConfigured || !pathname) return;
 
-    let url = window.location.origin + pathname;
-    const query = searchParams.toString();
-    if (query) url += "?" + query;
+    const url = buildPostHogPageviewUrl(
+      window.location.origin,
+      pathname,
+      new URLSearchParams(searchParams.toString()),
+    );
+    if (!url) return;
 
     // Safe to call regardless of consent: PostHog no-ops when opted out.
     posthog.capture("$pageview", { $current_url: url });

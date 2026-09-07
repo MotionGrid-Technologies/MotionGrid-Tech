@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, X, Loader2 } from "lucide-react";
 import { generateSlug } from "@/lib/blog-slug";
@@ -26,6 +26,7 @@ interface NewPostModalProps {
 
 export function NewPostModal({ categories, authors, open, onClose }: NewPostModalProps) {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const defaultAuthor =
     authors.find((a) => a.is_default) ?? authors[0] ?? null;
@@ -43,7 +44,12 @@ export function NewPostModal({ categories, authors, open, onClose }: NewPostModa
     [slugEdited, slug, title]
   );
 
-  if (!open) return null;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   function reset() {
     setTitle("");
@@ -88,12 +94,14 @@ export function NewPostModal({ categories, authors, open, onClose }: NewPostModa
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      ref={dialogRef}
+      className="m-auto w-[calc(100%_-_2rem)] max-w-lg bg-transparent p-0 backdrop:bg-black/70"
       aria-label="New post"
+      onCancel={onClose}
+      onClick={(event) => {
+        if (event.target === dialogRef.current) onClose();
+      }}
     >
       <div
         className="w-full max-w-lg rounded-[var(--radius-mg-lg)] border border-hairline bg-obsidian-soft p-6 shadow-2xl"
@@ -187,7 +195,7 @@ export function NewPostModal({ categories, authors, open, onClose }: NewPostModa
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 

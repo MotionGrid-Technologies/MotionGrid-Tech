@@ -66,6 +66,22 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_status_published
 CREATE INDEX IF NOT EXISTS idx_blog_posts_view_count
     ON public.blog_posts(view_count DESC);
 
+CREATE OR REPLACE FUNCTION public.set_blog_posts_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS blog_posts_set_updated_at ON public.blog_posts;
+CREATE TRIGGER blog_posts_set_updated_at
+    BEFORE UPDATE ON public.blog_posts
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_blog_posts_updated_at();
+
 -- ═══════════════════════════════════════════════════════════════
 -- Post ↔ Category assignment (many-to-many)
 -- ═══════════════════════════════════════════════════════════════

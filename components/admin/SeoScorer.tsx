@@ -303,10 +303,11 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
 
 export function SeoScorer({ posts }: { posts: SeoPost[] }) {
   const [selectedId, setSelectedId] = useState<string>(posts[0]?.id ?? "");
-  const [keywordOverride, setKeywordOverride] = useState("");
+  const [keywordOverride, setKeywordOverride] = useState<string | null>(null);
 
   const selected = posts.find((p) => p.id === selectedId) ?? null;
-  const keyword = keywordOverride || (selected ? deriveDefaultKeyword(selected.title) : "");
+  const keyword =
+    keywordOverride ?? (selected ? deriveDefaultKeyword(selected.title) : "");
 
   const result = useMemo(
     () => (selected ? scorePost(selected, keyword) : null),
@@ -315,7 +316,7 @@ export function SeoScorer({ posts }: { posts: SeoPost[] }) {
 
   function handleSelect(id: string) {
     setSelectedId(id);
-    setKeywordOverride("");
+    setKeywordOverride(null);
   }
 
   return (

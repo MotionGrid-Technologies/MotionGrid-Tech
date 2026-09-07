@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSuperAdminClient } from '@/lib/super-admin'
-import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
-import { checkRateLimit, getClientIpFromHeaders } from '@/lib/rate-limiter'
+import { guardAdminRequest } from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
-  const ip = getClientIpFromHeaders(request.headers)
-  const { allowed } = checkRateLimit(`admin:${ip}`, { maxRequests: 30, windowMs: 60_000 })
-  if (!allowed) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
+  const guardResponse = await guardAdminRequest(request, 'super_admin')
+  if (guardResponse) return guardResponse
+
   try {
-    const sessionClient = await createSupabaseServerClient()
-    const { data: { session } } = await sessionClient.auth.getSession()
-
-    if (!session || getRoleFromJWT(session) !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const { searchParams } = request.nextUrl
     const search = searchParams.get('search')?.trim() || ''
     const role = searchParams.get('role') || ''

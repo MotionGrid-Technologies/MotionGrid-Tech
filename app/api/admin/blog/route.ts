@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 import { listBlogPosts, createBlogPost } from '@/lib/blog-store'
 import { generateSlug } from '@/lib/blog-slug'
+import { sanitizeBlogHtml } from '@/lib/blog-html'
 
 const CreateSchema = z.object({
   title: z.string().min(1).max(300),
@@ -20,12 +21,9 @@ const CreateSchema = z.object({
 })
 
 export async function GET(request: Request) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
@@ -40,19 +38,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const body = CreateSchema.parse(await request.json())
     const post = await createBlogPost({
       title: body.title,
       slug: body.slug || generateSlug(body.title),
       excerpt: body.excerpt ?? null,
-      content: body.content ?? '',
+      content: sanitizeBlogHtml(body.content ?? ''),
       featuredImageUrl: body.featuredImageUrl ?? null,
       featuredImageAlt: body.featuredImageAlt ?? null,
       authorId: body.authorId ?? null,

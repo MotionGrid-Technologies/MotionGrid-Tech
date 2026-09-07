@@ -24,6 +24,26 @@ function createSiteClient() {
 
 export type MarketingEmailStatus = "draft" | "sent";
 
+type MarketingEmailRow = Database["public"]["Tables"]["marketing_emails"]["Row"];
+
+function parseMarketingEmailStatus(status: MarketingEmailRow["status"]): MarketingEmailStatus {
+  if (status === "draft" || status === "sent") return status;
+  throw new Error(`Unsupported marketing email status: ${status}`);
+}
+
+function mapMarketingEmail(row: MarketingEmailRow): MarketingEmail {
+  return {
+    id: row.id,
+    name: row.name,
+    subject: row.subject,
+    html_body: row.html_body,
+    text_body: row.text_body,
+    status: parseMarketingEmailStatus(row.status),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 export type MarketingEmail = {
   id: string;
   name: string;
@@ -35,24 +55,19 @@ export type MarketingEmail = {
   updated_at: string;
 };
 
-export async function listMarketingEmails(): Promise<MarketingEmail[]> {
+export async function listMarketingEmails(
+  limit = 50,
+  offset = 0
+): Promise<MarketingEmail[]> {
   const { data, error } = await createSiteClient()
     .from("marketing_emails")
     .select("*")
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    subject: row.subject,
-    html_body: row.html_body,
-    text_body: row.text_body,
-    status: row.status as MarketingEmailStatus,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  }));
+  return (data ?? []).map(mapMarketingEmail);
 }
 
 export async function getMarketingEmail(id: string): Promise<MarketingEmail | null> {
@@ -65,16 +80,7 @@ export async function getMarketingEmail(id: string): Promise<MarketingEmail | nu
   if (error) throw error;
   if (!data) return null;
 
-  return {
-    id: data.id,
-    name: data.name,
-    subject: data.subject,
-    html_body: data.html_body,
-    text_body: data.text_body,
-    status: data.status as MarketingEmailStatus,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-  };
+  return mapMarketingEmail(data);
 }
 
 export async function createMarketingEmail(input: {
@@ -96,16 +102,7 @@ export async function createMarketingEmail(input: {
 
   if (error) throw error;
 
-  return {
-    id: data.id,
-    name: data.name,
-    subject: data.subject,
-    html_body: data.html_body,
-    text_body: data.text_body,
-    status: data.status as MarketingEmailStatus,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
-  };
+  return mapMarketingEmail(data);
 }
 
 export async function updateMarketingEmail(
@@ -117,20 +114,26 @@ export async function updateMarketingEmail(
     text_body?: string | null;
     status?: MarketingEmailStatus;
   }
-): Promise<void> {
-  const { error } = await createSiteClient()
+): Promise<boolean> {
+  const { data, error } = await createSiteClient()
     .from("marketing_emails")
     .update({ ...input, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) throw error;
+  return data !== null;
 }
 
-export async function deleteMarketingEmail(id: string): Promise<void> {
-  const { error } = await createSiteClient()
+export async function deleteMarketingEmail(id: string): Promise<boolean> {
+  const { data, error } = await createSiteClient()
     .from("marketing_emails")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
 
   if (error) throw error;
+  return data !== null;
 }

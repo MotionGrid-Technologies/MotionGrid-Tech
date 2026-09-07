@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { isAdminAuthorized, isRateLimited } from '@/lib/api-auth'
+import { guardAdminRequest } from '@/lib/api-auth'
 import {
   getMarketingEmail,
   updateMarketingEmail,
@@ -10,19 +10,16 @@ import {
 const UpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   subject: z.string().max(500).optional(),
-  html_body: z.string().min(1).optional(),
+  html_body: z.string().min(1).max(500_000).optional(),
   text_body: z.string().nullable().optional(),
 })
 
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     const email = await getMarketingEmail(id)
@@ -37,16 +34,16 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 export async function PUT(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
     const body = UpdateSchema.parse(await request.json())
-    await updateMarketingEmail(id, body)
+    const updated = await updateMarketingEmail(id, body)
+    if (!updated) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json({ ok: true })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -61,15 +58,15 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(request: Request, { params }: Params) {
-  if (isRateLimited(request)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
-  }
-  if (!(await isAdminAuthorized())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guardResponse = await guardAdminRequest(request)
+  if (guardResponse) return guardResponse
+
   try {
     const { id } = await params
-    await deleteMarketingEmail(id)
+    const deleted = await deleteMarketingEmail(id)
+    if (!deleted) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('[marketing-emails] delete failed', error)

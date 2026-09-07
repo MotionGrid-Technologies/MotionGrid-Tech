@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BlogEditor, type BlogEditorHandle } from "@/components/marketing/BlogEditor";
 import { generateSlug } from "@/lib/blog-slug";
+import { sanitizeBlogHtml } from "@/lib/blog-html";
 
 interface ComposerCategory {
   id: string;
@@ -99,14 +100,19 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
       title,
       slug: effectiveSlug || generateSlug(title),
       excerpt: excerpt || null,
-      content,
+      content: sanitizeBlogHtml(content),
       featuredImageUrl: featuredImageUrl || null,
       featuredImageAlt: featuredImageAlt || null,
       authorId: authorId || null,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       status,
-      publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+      publishedAt:
+        status === "published"
+          ? publishedAt
+            ? new Date(publishedAt).toISOString()
+            : new Date().toISOString()
+          : null,
       categoryIds,
     };
   }
@@ -438,7 +444,7 @@ function ArticlePreview({
   featuredImageUrl: string;
   featuredImageAlt: string;
 }) {
-  const [html] = useState(content);
+  const html = useMemo(() => sanitizeBlogHtml(content), [content]);
   return (
     <article className="flex flex-col gap-6">
       <h1 className="font-display text-4xl text-chrome-100">{title || "(untitled)"}</h1>
