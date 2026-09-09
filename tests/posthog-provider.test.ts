@@ -5,7 +5,7 @@ import { buildPostHogPageviewUrl } from '../lib/posthog-pageview.ts'
 test('does not capture protected admin URLs', () => {
   const url = buildPostHogPageviewUrl(
     'https://motiongrid.co.za',
-    '/dashboard/admin/autofield/settings',
+    '/dashboard/admin/dashboard',
     new URLSearchParams('workshopId=secret&new=true'),
   )
 

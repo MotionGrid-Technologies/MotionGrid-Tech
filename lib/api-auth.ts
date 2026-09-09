@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServerClient, getRoleFromJWT } from '@/lib/supabaseServer'
+import { createSiteSupabaseServerClient, getRoleFromJWT } from '@/lib/siteSupabaseServer'
 import { checkRateLimit, getClientIpFromHeaders } from '@/lib/rate-limiter'
 
 type AdminRole = 'admin' | 'super_admin'
@@ -14,7 +14,7 @@ async function isRateLimited(request: Request): Promise<boolean> {
 }
 
 async function getAuthorizedRole(): Promise<ReturnType<typeof getRoleFromJWT> | null> {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createSiteSupabaseServerClient()
   const { data, error } = await supabase.auth.getClaims()
   return error || !data?.claims ? null : getRoleFromJWT(data.claims)
 }

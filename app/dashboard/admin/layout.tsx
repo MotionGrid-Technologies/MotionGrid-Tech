@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/nav/AdminSidebar";
-import { createSupabaseServerClient, getRoleFromJWT } from "@/lib/supabaseServer";
+import { createSiteSupabaseServerClient, getRoleFromJWT } from "@/lib/siteSupabaseServer";
 
 export const metadata: Metadata = {
   title: { default: "Admin", template: `%s — Admin · MotionGrid` },
@@ -13,7 +13,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSiteSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

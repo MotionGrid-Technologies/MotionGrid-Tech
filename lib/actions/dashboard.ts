@@ -9,7 +9,7 @@ import {
   updateDemoRequestStatus,
   type DemoRequestStatus,
 } from "@/lib/lead-store";
-import { createSupabaseServerClient, getRoleFromJWT } from "@/lib/supabaseServer";
+import { createSiteSupabaseServerClient, getRoleFromJWT } from "@/lib/siteSupabaseServer";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limiter";
 import {
@@ -28,7 +28,7 @@ export type DemoFormState = {
 };
 
 async function requireDashboardAccess(): Promise<boolean> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSiteSupabaseServerClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims) return false;
   const role = getRoleFromJWT(data.claims);

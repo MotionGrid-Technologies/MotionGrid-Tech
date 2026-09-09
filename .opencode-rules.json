@@ -1,8 +1,8 @@
 {
   "project_type": "Next.js 16 Marketing Site + Admin Dashboard",
   "styling": "Tailwind CSS v4 (CSS-first config)",
-  "database": "Supabase — MotionGrid leads (SITE_SUPABASE_*) and Autofield app (NEXT_PUBLIC_SUPABASE_*)",
-  "auth": "Custom HMAC session cookies for admin",
+  "database": "Supabase — MotionGrid project only (SITE_SUPABASE_* / NEXT_PUBLIC_SITE_SUPABASE_*)",
+  "auth": "Supabase Auth with Custom Access Token Hook (app_metadata.role from public.profiles); roles: user, admin, super_admin",
   "rules": [
     "STRICT: Never use raw hex codes or arbitrary Tailwind values in components.",
     "ALWAYS use design tokens from app/globals.css: text-chrome-100, bg-obsidian, border-hairline, text-signal, etc.",
@@ -14,7 +14,8 @@
     "Use Server Components by default. Add 'use client' only when necessary.",
     "Use named imports from lucide-react. Never import '* as Icons' from lucide-react.",
     "Keep all Supabase service-role usage in server code only (Server Components / Server Actions / API routes).",
-    "All admin Server Actions MUST verify the session before performing authenticated data mutations (authentication actions such as signIn and signOut, which establish or clear SESSION_COOKIE, are exempt).",
+    "All admin Server Actions MUST verify the session before performing authenticated data mutations (authentication actions such as signIn and signOut are exempt).",
+    "Use the MotionGrid Supabase client (lib/siteSupabaseServer.ts) for all cookie-based server auth.",
     "Never commit secrets, credentials, or session keys to source code.",
     "Respect prefers-reduced-motion for animations.",
     "Use .mg-brushed, .mg-chrome-text, and .mg-eyebrow utilities where the design calls for them.",
