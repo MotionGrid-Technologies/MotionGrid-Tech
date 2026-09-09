@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { createSupabaseServerClient, getRoleFromJWT } from "@/lib/supabaseServer";
+import { createSiteSupabaseServerClient, getRoleFromJWT } from "@/lib/siteSupabaseServer";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limiter";
 
@@ -40,7 +40,7 @@ export async function signInWithPassword(
     return { ok: false, message: "Enter your password." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSiteSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
@@ -50,14 +50,14 @@ export async function signInWithPassword(
   const { data: claimsData } = await supabase.auth.getClaims(data.session.access_token);
   const role = getRoleFromJWT(claimsData?.claims);
 
-  if (role === "super_admin") {
-    redirect("/dashboard/admin/autofield");
+  if (role === "admin" || role === "super_admin") {
+    redirect("/dashboard/admin/dashboard");
   }
-  redirect("/dashboard/admin/dashboard");
+  return { ok: false, message: "You don't have admin access." };
 }
 
 export async function signOut(): Promise<void> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSiteSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/login");
 }

@@ -4,13 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { navItems, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
+import { signOut } from "@/app/login/actions";
 
-export function Navbar() {
+export function Navbar({ user }: { user?: SupabaseUser | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -102,7 +104,28 @@ export function Navbar() {
             })}
           </nav>
 
-          <div className="hidden lg:block">
+          <div className="hidden items-center gap-3 lg:flex">
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-graphite/40 text-chrome-100 transition-colors hover:border-chrome-500 hover:text-chrome-100"
+                  aria-label="Go to dashboard"
+                  title="Dashboard"
+                >
+                  <User size={18} />
+                </Link>
+                <form action={signOut}>
+                  <Button type="submit" variant="ghost">
+                    Log out
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <Button href="/login" variant="ghost">
+                Sign In
+              </Button>
+            )}
             <Button href="/contact#demo" variant="primary">
               Book a free demo
             </Button>
@@ -184,14 +207,42 @@ export function Navbar() {
         </nav>
 
         <div className="border-t border-hairline px-6 py-5">
-          <Button
-            href="/contact#demo"
-            variant="primary"
-            className="w-full"
-            onClick={() => setOpen(false)}
-          >
-            Book a free demo
-          </Button>
+          <div className="flex flex-col gap-2">
+            {user ? (
+              <>
+                <Button
+                  href="/dashboard"
+                  variant="chrome"
+                  className="w-full"
+                  onClick={() => setOpen(false)}
+                >
+                  Dashboard
+                </Button>
+                <form action={signOut}>
+                  <Button type="submit" variant="ghost" className="w-full">
+                    Log out
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <Button
+                href="/login"
+                variant="chrome"
+                className="w-full"
+                onClick={() => setOpen(false)}
+              >
+                Sign In
+              </Button>
+            )}
+            <Button
+              href="/contact#demo"
+              variant="primary"
+              className="w-full"
+              onClick={() => setOpen(false)}
+            >
+              Book a free demo
+            </Button>
+          </div>
         </div>
       </div>
     </>

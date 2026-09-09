@@ -15,7 +15,6 @@ export const site = {
 };
 
 export const navItems = [
-  { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Products", href: "/products" },
   { label: "Technology", href: "/technology" },
@@ -52,11 +51,9 @@ export const footerColumns = [
   {
     title: "Legal & Trust",
     links: [
-      { label: "Security & Trust", href: "/security" },
       { label: "Privacy Policy", href: "/legal/privacy" },
       { label: "Terms of Service", href: "/legal/terms" },
       { label: "Cookie Policy", href: "/legal/cookies" },
-      { label: "Accessibility", href: "/accessibility" },
     ],
   },
 ];

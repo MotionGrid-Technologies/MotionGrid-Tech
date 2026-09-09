@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { signInWithPassword, type LoginState } from "./actions";
 
@@ -10,18 +10,15 @@ export function LoginForm() {
   const initialState: LoginState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(signInWithPassword, initialState);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
   return (
     <section className="fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-y-auto bg-black px-6 py-16">
       <Container className="max-w-md">
         <div className="rounded-[var(--radius-mg-lg)] border border-hairline bg-black p-8">
-          <div className="mb-8 flex flex-col gap-2">
-            <span className="mg-eyebrow">Admin</span>
+          <div className="mb-8 flex flex-col items-center gap-2 text-center">
             <h1 className="font-display text-3xl text-chrome-100">Sign in</h1>
-            <p className="text-sm text-chrome-500">
-              Restricted area. Authorized admins only.
-            </p>
           </div>
 
           <form
@@ -60,11 +57,19 @@ export function LoginForm() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   className="w-full bg-transparent py-3 text-sm text-chrome-100 placeholder:text-chrome-700 focus:outline-none"
                   placeholder="Password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="text-chrome-700 transition-colors hover:text-chrome-300"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 

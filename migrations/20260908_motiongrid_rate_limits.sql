@@ -21,7 +21,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-    current_time TIMESTAMPTZ := clock_timestamp();
+    ts TIMESTAMPTZ := clock_timestamp();
     counter public.rate_limit_counters%ROWTYPE;
 BEGIN
     IF p_max_requests <= 0 OR p_window_ms <= 0 THEN
@@ -34,19 +34,19 @@ BEGIN
         window_started,
         updated_at
     )
-    VALUES (p_identifier, 1, current_time, current_time)
+    VALUES (p_identifier, 1, ts, ts)
     ON CONFLICT (identifier) DO UPDATE SET
         request_count = CASE
-            WHEN counters.window_started + make_interval(secs => p_window_ms / 1000.0) <= current_time
+            WHEN counters.window_started + make_interval(secs => p_window_ms / 1000.0) <= ts
                 THEN 1
             ELSE counters.request_count + 1
         END,
         window_started = CASE
-            WHEN counters.window_started + make_interval(secs => p_window_ms / 1000.0) <= current_time
-                THEN current_time
+            WHEN counters.window_started + make_interval(secs => p_window_ms / 1000.0) <= ts
+                THEN ts
             ELSE counters.window_started
         END,
-        updated_at = current_time
+        updated_at = ts
     RETURNING * INTO counter;
 
     RETURN QUERY SELECT
@@ -56,7 +56,7 @@ BEGIN
             CEIL(EXTRACT(EPOCH FROM (
                 counter.window_started
                 + make_interval(secs => p_window_ms / 1000.0)
-                - current_time
+                - ts
             )) * 1000)::INTEGER,
             0
         );

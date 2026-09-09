@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/nav/Navbar";
+import { NavbarContainer } from "@/components/nav/NavbarContainer";
 import { Footer } from "@/components/nav/Footer";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { CookieBanner } from "@/components/analytics/CookieBanner";
@@ -98,7 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={softwareApplicationSchema} />
         <PostHogProvider />
         <CookieBanner />
-        <Navbar />
+        <NavbarContainer />
         <main className="flex-1">{children}</main>
         <Footer />
       </body>

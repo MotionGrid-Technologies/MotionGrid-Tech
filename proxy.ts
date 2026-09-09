@@ -18,8 +18,8 @@ export async function proxy(request: NextRequest) {
   }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SITE_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -66,14 +66,14 @@ export async function proxy(request: NextRequest) {
     if (pathname === '/dashboard' || pathname === '/dashboard/') {
       const target =
         role === 'super_admin'
-          ? '/dashboard/admin/autofield'
+          ? '/dashboard/admin/dashboard'
           : '/dashboard/admin/dashboard'
       return redirectWithAuthState(new URL(target, request.url))
     }
 
-    // /dashboard/admin/autofield/* — super_admin only.
-    if (pathname.startsWith('/dashboard/admin/autofield')) {
-      if (role !== 'super_admin') {
+    // /dashboard/admin/* — admin or super_admin only.
+    if (pathname.startsWith('/dashboard/admin')) {
+      if (role !== 'admin' && role !== 'super_admin') {
         return redirectWithAuthState(
           new URL('/dashboard/admin/dashboard', request.url)
         )
