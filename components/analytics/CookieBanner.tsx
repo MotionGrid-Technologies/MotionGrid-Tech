@@ -17,9 +17,7 @@ export function CookieBanner() {
   const handleConsent = (status: "accepted" | "declined") => {
     setCookieConsent(status);
     setIsVisible(false);
-    if (status === "accepted") {
-      window.dispatchEvent(new Event("cookie_consent_updated"));
-    }
+    window.dispatchEvent(new Event("cookie_consent_updated"));
   };
 
   if (!isVisible) return null;

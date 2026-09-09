@@ -10,11 +10,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { founders, site } from "@/lib/site";
 import posthog from "posthog-js";
-import { submitDemoRequest, type DemoFormState } from "../adminj2-v1/actions";
-
-const posthogConfigured = Boolean(
-  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
-);
+import { submitDemoRequest, type DemoFormState } from "@/lib/actions/dashboard";
+import { isPostHogConfigured } from "@/lib/posthog";
 
 export default function ContactPage() {
   const initialState: DemoFormState = { ok: false, message: "" };
@@ -46,7 +43,7 @@ export default function ContactPage() {
             <form
               action={formAction}
               onSubmit={() => {
-                if (posthogConfigured) posthog.capture("demo_request_submitted");
+                if (isPostHogConfigured) posthog.capture("demo_request_submitted");
                 // Clear the token and reset the widget so the next submission
                 // requires a fresh challenge (including after validation or
                 // persistence failures).
@@ -112,7 +109,7 @@ export default function ContactPage() {
               </Button>
             </form>
             <Link
-              href="/adminj2-v1/dashboard"
+              href="/dashboard/admin/dashboard"
               className="mt-8 inline-flex items-center gap-1.5 text-xs text-chrome-700 transition-colors hover:text-chrome-300"
             >
               <Lock size={12} /> Admin dashboard

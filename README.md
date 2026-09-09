@@ -4,6 +4,9 @@ Next.js 16 + React 19 + TypeScript, styled as a design system (no CMS/mock data 
 every page is real markup and copy, ready for you to plug real content into the
 spots marked `TODO`).
 
+**MotionGrid-only.** The former AutoField workshop-SaaS backdoor has been removed;
+its schema and migrations live under `archive/` for historical reference only.
+
 ## Getting started
 
 ```bash
@@ -12,6 +15,9 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+Copy `.env.example` to `.env.local` and fill in the MotionGrid Supabase + service
+keys, Resend, Turnstile, and PostHog values before wiring data features.
 
 > Note: the site uses Google Fonts (`next/font/google` — Fraunces, Inter,
 > JetBrains Mono), so the machine you build/run on needs normal internet
@@ -34,90 +40,66 @@ Open http://localhost:3000.
 ## Structure
 
 ```
-app/                  routes (App Router)
-  about, products, technology, industries,
+app/                    routes (App Router)
+  about, products, technology, industries, blog,
   contact, sandbox, tools,
   technology/backend, technology/frontend, technology/other-technologies,
   legal/privacy, legal/terms, legal/cookies,
-  security, accessibility,
-  adminj2-v1/          admin section (gated by proxy.ts)
-    login, dashboard, autofield, seo, stats
+  login/                  Supabase Auth sign-in (MotionGrid project)
+  dashboard/admin/        admin section (gated by proxy.ts)
+    dashboard, seo, stats, marketing/blog, marketing/emails
+  api/admin/              blog, marketing-emails, upload-image
 components/
-  ui/                 Button, Card, SectionHeading, Eyebrow, StatusPill,
-                      Container, ContactLine, etc.
-  motifs/             Filament + FilamentDivider (signature graphic device)
-  nav/                Navbar, Footer, AdminSidebar
-  sections/           PageHero, LegalDoc
-  analytics/          PostHogProvider (inert until a key is set)
-  admin/              SignOutButton
+  ui/                     Button, Card, SectionHeading, Eyebrow, StatusPill,
+                          Container, ContactLine, etc.
+  motifs/                 Filament + FilamentDivider (signature graphic device)
+  nav/                    Navbar, NavbarContainer, Footer, AdminSidebar
+  sections/               PageHero, LegalDoc
+  analytics/              PostHogProvider + CookieBanner
+  admin/                  SeoScorer, SignOutButton
 lib/
-  site.ts             nav items, footer links, founders, industries — EDIT HERE
-  technologies.ts     tech stack list shown on Home + Technology
-  lead-store.ts        Supabase lead store (demo requests + PayFast payments)
-  admin-auth.ts       admin session + hardcoded credentials
-                      (move to env vars before launch)
-  cn.ts               clsx + tailwind-merge helper
-proxy.ts              admin auth gate (runs before /adminj2-v1/* routes)
-next.config.ts        security headers
-.env.example          PostHog + Google Search Console keys (all optional)
+  site.ts                 nav items, footer links, founders, industries — EDIT HERE
+  siteSupabaseServer.ts   MotionGrid cookie-based server auth client
+  technologies.ts         tech stack list shown on Home + Technology
+  lead-store.ts           Supabase lead store (demo requests + PayFast payments)
+  marketing-email.ts      Resend marketing/lead email sender
+  marketing-emails-store.ts  marketing email drafts (Tiptap editor)
+  blog-store.ts           blog posts/categories/authors store
+  rate-limiter.ts         Postgres-backed check_rate_limit RPC
+  email-templates/        marketing + contact email templates
+  cn.ts                   clsx + tailwind-merge helper
+proxy.ts                  auth/session gate (runs before /login + /dashboard/*)
+migrations/               MotionGrid migrations only
+archive/                  archived Autofield schema + migrations
+types/database.ts         generated from the MotionGrid Supabase project
 ```
+
+## Auth & admin
+
+- `/login` authenticates against the **MotionGrid** Supabase project.
+- A Custom Access Token Hook (`public.custom_access_token_hook`) reads
+  `profiles.role` and injects `app_metadata.role` into the JWT.
+- `/dashboard/admin/*` requires `admin` or `super_admin` (checked in `proxy.ts`
+  and the admin layout).
+- The home navbar shows **Sign In** when logged out and a profile icon +
+  **Log out** when logged in.
 
 ## Things to fill in before launch
 
-Search the codebase for `TODO` — the main ones:
-
-- `app/legal/*`, `app/security/page.tsx`, `app/accessibility/page.tsx` —
-  have a lawyer review before publishing; company registration details,
-  jurisdiction, and dates are placeholders.
-- `.env.example` — copy to `.env.local` and fill in PostHog + Search Console
-  keys when ready (site works fully with these unset).
+- `app/legal/*` — have a lawyer review before publishing; company registration
+  details, jurisdiction, and dates are placeholders.
+- `.env.local` — fill in MotionGrid Supabase, Resend, Turnstile, and PostHog keys.
 
 ## Growth infrastructure already wired
 
--
 - Security headers (HSTS, X-Frame-Options, etc.) in `next.config.ts`.
-- PostHog analytics scaffold — disabled until `NEXT_PUBLIC_POSTHOG_KEY` is set.
+- PostHog analytics scaffold + cookie consent banner.
 - Google Search Console — verification tag wired via `NEXT_PUBLIC_GSC_VERIFICATION`.
+- Cloudflare Turnstile on public forms + login.
+- Postgres-backed rate limiting (login, forms, API).
 - Fully responsive, keyboard-focus visible, reduced-motion respected.
 
 ## Deliberately left for later (per the brief)
 
-PayFast integration, customer login portal, public status page, and API
+PayFast ITN webhook/data flow, customer login portal, public status page, and API
 documentation — build these once there's a live, paying product to support.
-
-
-## Note i already created the admin page
-this is how u access it
- http://localhost:3000/adminj2-v1/login
- then u use your real email adress  (the one u use to communicate with me)
-<<<<<<< HEAD
- the password is harcoded for now ()
-=======
- the password is harcoded for now i sent it to ur email
->>>>>>> 0ecea122c57bf646a5375fa20dc5be9f3df20214
-made a diabolical name for the admin folder jst so its harder to guess
-
-Set the real production domain (url) — line 13
-Must fix before any public launch
-1. Move admin credentials + session secret out of source into env vars (lib/admin-auth.ts
-2. Remove pre-filled email from login form
-3. Add server-side auth check to admin Server Actions (app/adminj2-v1/actions.ts)
-4. Implement device/IP allowlist for admin (your todo)
-5. Lawyer review of all 3 legal pages; fill in real hosting/jurisdiction/retention details
-6. Set real production domain + email in lib/site.ts
-7. Confirm founder phone numbers, emails, and add real headshot photos 8. Rewrite founder bios (fix typos)
-9. Set accessibility updated date + list known gaps
-10. Name real hosting provider on Security page
-11. Create og-image.png (1200×630) and confirm apple-touch-icon asse
-
-my todo
-need to fix the images on the technology  (size and shape) make them display properly
-need to fix how the autofield pic is displayed
-need to add the extra security layer of only allowing only 2 specific PCs to access admin page
-need to improve our Biographies
-need to creeate database on supabase and link our payfast stuff there
-Je todo
-need to add superAdmin of autofield
-need to create Blogs page
-security n trust page
-Accessibility

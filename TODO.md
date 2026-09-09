@@ -1,81 +1,77 @@
 # MotionGrid Technologies — TODO / Roadmap
 
-Last updated: September 2026
+Last updated: 2026-09-07 (audited against codebase)
 
 ---
 
 ## 🚀 PRODUCTION EXECUTION PLAN (locked 2026-09-06)
 
 Final consolidated plan. Decisions are locked below — do not re-litigate.
+### ⚠️ Architecture — MotionGrid-only Supabase (single project)
 
-### ⚠️ Architecture — TWO separate Supabase projects (critical)
-
-This repo houses **MotionGrid's marketing site** BUT also serves as the **Autofield SuperAdmin backdoor**. Two distinct Supabase projects exist:
+This repo is **MotionGrid's marketing site + admin dashboard**. All data lives in
+a single Supabase project (the MotionGrid one):
 
 | Deployment | Project | Env vars |
 |---|---|---|
-| **MotionGrid** (this marketing site) | MotionGrid Supabase | `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server-only); `NEXT_PUBLIC_SITE_SUPABASE_URL`, `NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` (client, only if a browser client is ever added) |
-| **Autofield** (SuperAdmin backdoor) | Autofield Supabase (`ueqptaohroqxmwrddicj`) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
-| **Edge Function** (`supabase/functions/custom-access-token`) | Autofield Supabase | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Deno runtime config) |
+| **MotionGrid** (marketing site + admin) | MotionGrid Supabase | `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server-only); `NEXT_PUBLIC_SITE_SUPABASE_URL`, `NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` (client) |
 
-- `super_admin` login authenticates against **Autofield's** Supabase (`app/adminj2-v1/autofield/login`).
-- MotionGrid's own identity/auth (future client portal, marketing data) lives in **MotionGrid's** Supabase — NOT the same project.
-- Do **not** collapse these. The MotionGrid project uses the `SITE_SUPABASE_*` prefix; the Autofield app keeps the `NEXT_PUBLIC_SUPABASE_*` prefix; the Edge Function reads plain `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` from its own runtime config.
-
-> 🚧 **BLOCKER (resolved):** MotionGrid's own Supabase project credentials are present in the env (`SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY`). Create the `demo_requests`/`payfast_payments` tables via `migrations/20260906_motiongrid_lead_capture.sql` before Phase 3 marketing-email persistence.
+- Auth (admin login) authenticates against **MotionGrid's** Supabase.
+- The Custom Access Token Hook (`public.custom_access_token_hook`) injects
+  `app_metadata.role` from `public.profiles.role`.
+- Do **not** reintroduce the Autofield project or its `NEXT_PUBLIC_SUPABASE_*`
+  vars — the old Autofield backdoor was removed and its schema/migrations are
+  archived under `archive/`.
 
 ---
 
 ### Phase 1 — Security Blockers & Env (P0)
 
-- [ ] Create `.env.local` (never commit; add to `.gitignore`)
+- [x] Create `.env.local` (never commit; add to `.gitignore`)
 - [ ] **Rotate all exposed secrets** — Resend `re_...` (shared in chat) + Supabase anon/service keys (present in git history)
-- [ ] Add **MotionGrid** Supabase vars (own project): `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server), and `NEXT_PUBLIC_SITE_SUPABASE_URL`/`NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` if a browser client is introduced
-- [ ] Keep Autofield Supabase vars as-is (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `ueqptaohroqxmwrddicj`, `SUPABASE_SERVICE_ROLE_KEY`)
-- [ ] Add Resend vars:
+- [x] Add **MotionGrid** Supabase vars (own project): `SITE_SUPABASE_URL`, `SITE_SUPABASE_SERVICE_ROLE_KEY` (server), and `NEXT_PUBLIC_SITE_SUPABASE_URL`/`NEXT_PUBLIC_SITE_SUPABASE_ANON_KEY` (client)
+- [x] Remove Autofield Supabase vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) — Autofield backdoor removed
+- [x] Add Resend vars:
   - `RESEND_API_KEY` (rotated)
-  - `EMAIL_FROM=hi@motiongrid.tech`
+  - `EMAIL_FROM=hi@updates.motiongrid.co.za` (verified Resend sender; replies route to `hi@motiongrid.co.za`)
   - `EMAIL_DISPLAY_NAME="Motion Grid"`
-  - `ADMIN_NOTIFICATION_EMAIL=hello@motiongrid.tech`
-- [ ] Add `NEXT_PUBLIC_SITE_URL=https://motiongrid.tech`
-- [ ] Add Turnstile vars: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`
-- [ ] Harden `/sandbox` — CSP meta tag + `event.origin` validation in `CodePlayground.tsx` (P0 XSS)
-- [ ] Add Cloudflare Turnstile to public contact/demo form (server-side token verify)
-- [ ] Wire **in-memory** rate limiter (`lib/rate-limiter.ts`) into public form + login + API routes
+  - `ADMIN_NOTIFICATION_EMAIL=hello@motiongrid.co.za`
+- [x] Add `NEXT_PUBLIC_SITE_URL=https://motiongrid.co.za`
+- [x] Add Turnstile vars: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`
+- [x] Harden `/sandbox` — CSP meta tag + `event.origin` validation in `CodePlayground.tsx` (P0 XSS)
+- [x] Add Cloudflare Turnstile to public contact/demo form (server-side token verify)
+- [x] Wire **in-memory** rate limiter (`lib/rate-limiter.ts`) into public form + login + API routes
 
 ---
 
 ### Phase 2 — Route Restructure & Auth Unification (P1)
 
-- [ ] **Physically move** `app/adminj2-v1/...` → `app/dashboard/admin/...` (no rewrites, clean structure)
-- [ ] **Break** old `/adminj2-v1/*` URLs (404 — no redirects, intended for security)
-- [ ] Delete `lib/admin-auth.ts` entirely (hardcoded HMAC session)
-- [ ] Delete `proxy.ts` (dead custom session gate)
-- [ ] Auth = **Supabase Auth only** with role claims (`super_admin`, `admin`, `client`)
-- [ ] Note: superadmin backdoor login authenticates against **Autofield** Supabase (unchanged semantics, just moved path)
-- [ ] Middleware: `/dashboard` → read JWT role → redirect:
-  - `super_admin` → `/dashboard/admin/autofield`
-  - `admin` → `/dashboard/admin/dashboard`
+- [x] **Physically move** `app/adminj2-v1/...` → `app/dashboard/admin/...` (no rewrites, clean structure)
+- [x] **Break** old `/adminj2-v1/*` URLs (404 — no redirects, intended for security)
+- [x] Delete `lib/admin-auth.ts` entirely (hardcoded HMAC session)
+- [x] Delete old `proxy.ts` (dead custom HMAC session gate). NOTE: a new `proxy.ts` now exists — it is the Next.js 16 role-redirect proxy, not the old HMAC gate.
+- [x] Auth = **Supabase Auth only** with role claims (`super_admin`, `admin`, `client`) (unified `app/login` uses Supabase SSR against the MotionGrid project)
+- [x] Proxy (Next.js 16 `proxy.ts`, formerly middleware): `/dashboard` → read JWT role → redirect:
+  - `admin` / `super_admin` → `/dashboard/admin/dashboard`
 - [ ] Navbar: show **Sign In** (logged out) / **profile icon + logout** (logged in) — desktop **and** mobile
 - [ ] Profile icon click → `/dashboard`
-- [ ] **Skip client dashboard entirely** — no `/dashboard/client` skeletons
+- [x] **Skip client dashboard entirely** — no `/dashboard/client` skeletons
 
 ---
 
 ### Phase 3 — Email / Resend Integration (P2)
 
-- [ ] Connect Resend, sender `hi@motiongrid.tech` (verified)
-- [ ] Update `lib/email.ts` fallback sender → `Motion Grid <hi@motiongrid.tech>`
-- [ ] Contact/demo form: **log to Supabase** (`demo_requests`) **AND** send Resend email to `hello@motiongrid.tech`
-- [ ] Add missing default templates: `quote_notification_admin`, `quote_submitted_confirmation`, `contact_form`
-- [ ] Add MotionGrid marketing templates: `contact_form_submission`, `demo_request_confirmation`
-- [ ] Build **Tiptap editor/viewer for MotionGrid marketing emails ONLY**
+- [x] Connect Resend, sender `hi@updates.motiongrid.co.za` (verified; replies route to `hi@motiongrid.co.za`)
+- [x] Update marketing sender → `Motion Grid <hi@updates.motiongrid.co.za>` (Autofield `lib/email.ts` removed in MotionGrid-only refactor)
+- [x] Contact/demo form: **log to Supabase** (`demo_requests`) **AND** send Resend email (admin notification to `hello@motiongrid.co.za` + prospect confirmation)
+- [x] Add MotionGrid marketing templates: `contact_form_submission`, `demo_request_confirmation`
+- [x] Build **Tiptap editor/viewer for MotionGrid marketing emails ONLY**
   - deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-underline`, `@tiptap/extension-text-align`, `@tiptap/extension-text-style`, `@tiptap/extension-color`, `@tiptap/extension-image`, `@tiptap/extension-placeholder`, `isomorphic-dompurify`
   - `EmailEditor.tsx`, `EmailPreview.tsx` (sandboxed iframe), merge-tag toolbar
   - Marketing email admin page under `/dashboard/admin/marketing/emails`
-- [ ] Marketing email API routes: `app/api/admin/marketing-emails/route.ts` + `/preview`
-- [ ] Leave existing `EmailTemplatesForm.tsx` (Autofield workshop templates) **as-is** (raw HTML)
-- [ ] **Skip** custom auth emails — use Supabase dashboard HTML for verification/reset
+- [x] Marketing email API routes: `app/api/admin/marketing-emails/route.ts` (list/create), `[id]/route.ts` (get/update/delete), `[id]/send/route.ts` (test send). NOTE: preview is client-side (`EmailPreview` + shared merge-tag renderer), so no `/preview` route was needed.
+- [x] Removed `EmailTemplatesForm.tsx` (Autofield workshop templates) in the MotionGrid-only refactor
+- [x] **Skip** custom auth emails — use Supabase dashboard HTML for verification/reset
 
 > 🚧 Marketing-template persistence: decide table location once MotionGrid Supabase project is provisioned (Phase 1 blocker).
 
@@ -83,10 +79,10 @@ This repo houses **MotionGrid's marketing site** BUT also serves as the **Autofi
 
 ### Phase 4 — Component Polish (P3)
 
-- [ ] Create `app/not-found.tsx` + `app/error.tsx`
+- [x] Create `app/not-found.tsx` + `app/error.tsx` (styled, use `Container` + `Button`, guide back home)
 - [ ] Create OG image (`public/og-image.png` 1200×630) or `app/opengraph-image.tsx`
-- [ ] Add `priority` to mobile-navbar logo image
-- [ ] JSON-LD `SoftwareApplication` structured data in `app/layout.tsx`
+- [x] Add `priority` to mobile-navbar logo image
+- [x] JSON-LD `SoftwareApplication` structured data in `app/layout.tsx` (via `components/JsonLd.tsx`)
 - [ ] GA4 gated behind cookie consent (optional; PostHog already present)
 - [ ] Fix image sizing on Technology pages + AutoField product image
 
@@ -98,37 +94,35 @@ Findings from the 2026-09-06 full-site audit. Knock these out before scaling adm
 
 ### P0 — Security blockers (fix before any public admin access)
 > ✅ Superseded by **PRODUCTION EXECUTION PLAN → Phase 1 & Phase 2** above.
-- [ ] Delete `lib/admin-auth.ts` entirely (hardcoded HMAC credentials) — see Phase 2
-- [ ] Delete `proxy.ts` — see Phase 2
-- [ ] Wire rate limiter into login + API routes — see Phase 1
-- [ ] Harden `/sandbox` XSS — see Phase 1
+- [x] Delete `lib/admin-auth.ts` entirely (hardcoded HMAC credentials) — see Phase 2
+- [x] Delete old `proxy.ts` (custom HMAC session gate) — see Phase 2 (new `proxy.ts` is the Next.js 16 role proxy)
+- [x] Wire rate limiter into login + API routes — see Phase 1
+- [x] Harden `/sandbox` XSS — see Phase 1
 
 ### P1 — Route & admin architecture restructure
 > ✅ Superseded by **PRODUCTION EXECUTION PLAN → Phase 2** above.
-- [ ] Physically move `adminj2-v1` → `dashboard/admin`; break old URLs (no redirects) — see Phase 2
-- [ ] Middleware role-based redirect after login — see Phase 2
+- [x] Physically move `adminj2-v1` → `dashboard/admin`; break old URLs (no redirects) — see Phase 2
+- [x] Middleware role-based redirect after login — see Phase 2 (now `proxy.ts`)
 - [ ] Add "Sign in" / profile button to navbar — see Phase 2
-- [ ] Merge/delete duplicate dashboard (`dashboard` vs `autofield/dashboard` copy-paste dupes)
-- [ ] Fix `/api/admin/workshops` naming (requires `super_admin`, not `admin`)
+- [x] Navbar auth buttons (Sign In / profile icon + Log out, desktop + mobile) — done in MotionGrid-only refactor
+- [x] Remove dead `/api/admin/workshops` naming item — Autofield APIs removed in MotionGrid-only refactor
 
 ### P2 — Sandbox & XSS security
-- [ ] Harden `CodePlayground.tsx`: `event.origin` validation, restrict `postMessage`, add CSP meta tag, validate `level`
-- [ ] Sanitize/restrict `EmailTemplatesForm.tsx` `dangerouslySetInnerHTML` preview (admin-controlled HTML)
+- [x] Harden `CodePlayground.tsx`: `event.origin` validation, restrict `postMessage`, add CSP meta tag, validate `level`
+- [x] `EmailTemplatesForm.tsx` removed in MotionGrid-only refactor (no longer a concern)
 
 ### P3 — Component reuse & cleanup
-- [ ] Unify two Button systems: `components/ui/Button.tsx` vs `components/ui/buttons.tsx`
+- [-] Unify two Button systems: `components/ui/Button.tsx` vs `components/ui/buttons.tsx` (both files still exist; `Button.tsx` is used by marketing site, `buttons.tsx` elsewhere)
 - [ ] Create shared `Modal` primitive (7+ modals re-implement the same shell)
 - [ ] Create shared form field components (`Input`, `TextArea`, `Select`, `Field`, `FormError`)
-- [ ] Merge duplicate vehicle forms: `admin/AddVehicleModal.tsx` + `settings/VehicleFormModal.tsx`
-- [ ] Consolidate `StatusBadge.tsx` + `StatusPill.tsx`
-- [ ] Promote `HomepageContentForm` local `TextField`/`TextArea` helpers to `components/ui/`
-- [ ] Remove dead `/dashboard/admin/*` links in `components/admin/*.tsx` (routes don't exist)
+- [x] Vehicle/settings forms removed in MotionGrid-only refactor (`AddVehicleModal`, `VehicleFormModal`, etc.)
+- [-] Consolidate `StatusBadge.tsx` + `StatusPill.tsx` (both components exist)
+- [x] `HomepageContentForm` removed in MotionGrid-only refactor
+- [x] Dead `/dashboard/admin/*` links in `components/admin/*.tsx` removed with the Autofield components
 
 ### P4 — Placeholder & data cleanup
-- [ ] Audit `lib/site-config.ts` (stale "Top Life Mechanics" tenant data, phone, address, VAT)
-- [ ] Audit `lib/homepage-content.ts` defaults (Pexels stock images, `{city}` placeholders)
-- [ ] Neutralize default tenant values in `autofield/workshops` + `settings` ("Autofields Technics", `+27784802796`, `#3B82F6`)
-- [ ] Fix stale "No auth yet" comments in dashboard pages + `actions.ts`
+- [x] `lib/site-config.ts`, `lib/homepage-content.ts`, and Autofield tenant defaults removed in MotionGrid-only refactor
+- [x] Fix stale "No auth yet" comments in dashboard pages + `actions.ts` (files deleted in `adminj2-v1` restructure)
 
 ### P5 — Customer dashboard readiness (future)
 > ⚠️ **Skipped for now** — do NOT build `/dashboard/client` or its skeletons (decision locked 2026-09-06).
@@ -149,10 +143,10 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` (server-only, never exposed to client)
 
 ### Auth Migration
-- [ ] Delete `lib/admin-auth.ts` (hardcoded credentials + HMAC session)
-- [ ] Delete `proxy.ts` (custom session gate)
-- [ ] Replace with Supabase Auth + Next.js middleware using `@supabase/ssr`
-- [ ] Migrate admin login to Supabase Auth (`app/adminj2-v1/login`)
+- [x] Delete `lib/admin-auth.ts` (hardcoded credentials + HMAC session)
+- [x] Delete old `proxy.ts` (custom session gate) — new `proxy.ts` is the Next.js 16 role proxy
+- [x] Replace with Supabase Auth + Next.js proxy using `@supabase/ssr` (`app/login` + `proxy.ts`)
+- [x] Migrate admin login to Supabase Auth (`app/login`)
 - [ ] Create `admin` role in Supabase with RLS policies
 
 ### Database Migration
@@ -162,30 +156,30 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [x] Remove `serverExternalPackages: ["better-sqlite3"]` from `next.config.ts`
 - [x] Create Supabase tables:
   - [x] `demo_requests` (name, company, email, phone, message, status, created_at)
-  - [ ] `payfast_payments` (pf_payment_id, amounts, status, timestamps)
+  - [-] `payfast_payments` (pf_payment_id, amounts, status, timestamps) (migration exists; no ITN webhook/data flow yet)
   - [ ] `subscriptions` (client_id, plan, status, amount, next_billing_date)
   - [ ] `clients` (name, email, domain, project_status, workshop_slug)
-- [ ] Enable Row Level Security on all tables
+- [-] Enable Row Level Security on all tables (`demo_requests`/`payfast_payments` have RLS; broader audit needed)
 - [ ] Create `public.current_workshop_id()` helper for multi-tenant isolation
 - [ ] Set up Supabase Storage for client asset uploads
 
 ### Type Safety
-- [ ] Run `supabase gen types` to generate `types/database.ts`
-- [ ] Replace all SQLite type imports with Supabase types
+- [x] Run `supabase gen types` to generate `types/database.ts` (includes `demo_requests`/`payfast_payments`)
+- [-] Replace all SQLite type imports with Supabase types (most replaced; verify no SQLite imports remain)
 
 ---
 
 ## Phase 0: Launch Blockers
 
 - [ ] Lawyer review of all 3 legal pages; fill real hosting, jurisdiction, retention details
-- [ ] Set real production domain + email in `lib/site.ts`
-- [ ] Confirm founder phone numbers, emails, headshots; rewrite bios
+- [x] Set real production domain + email in `lib/site.ts` (`https://motiongrid.co.za`, `hi@motiongrid.co.za`)
+- [-] Confirm founder phone numbers, emails, headshots; rewrite bios (info present; Mnqobi bio still has `// Todo need better bio`)
 - [ ] Name real hosting provider on Security page
 - [ ] Set accessibility updated date + list known gaps
 - [ ] Create/fix `og-image.png` (1200×630) and apple-touch-icon assets
 - [ ] Fix image sizing on Technology pages + AutoField product image
-- [ ] Cookie consent banner + PostHog opt-in flow
-- [ ] Remove pre-filled email from admin login form
+- [x] Cookie consent banner + PostHog opt-in flow
+- [x] Remove pre-filled email from admin login form
 
 ---
 
@@ -206,10 +200,10 @@ Most of this will be removed once Supabase + Vercel are connected for security.
   - Auto-email PDF via Brevo, Resend or SendGrid
 
 ### 1.2 Contact / Demo Flow
-- [ ] Wire contact form to Supabase `demo_requests` table
-- [ ] Email notification to admin on new demo request (Supabase Edge Function or Resend)
-- [ ] Admin dashboard: view, update status, filter, delete demo requests
-- [ ] Auto-responder confirmation email to prospect
+- [x] Wire contact form to Supabase `demo_requests` table
+- [x] Email notification to admin on new demo request (Resend via `lib/marketing-email.ts`)
+- [x] Admin dashboard: view, update status, filter, delete demo requests
+- [x] Auto-responder confirmation email to prospect
 
 ### 1.3 Social Proof
 - [ ] Testimonials section on homepage or `/testimonials`
@@ -305,7 +299,7 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 
 - [ ] Supabase `subscriptions.status` field + webhook on payment failure
 - [ ] Middleware check in all client Next.js apps against Supabase subscription status
-- [ ] Auto-redirect to `hosting-suspended.motiongrid.tech` if `past_due` exceeds threshold
+- [ ] Auto-redirect to `hosting-suspended.motiongrid.co.za` if `past_due` exceeds threshold
 - [ ] Suspension page with payment update form
 - [ ] Auto-restore service after payment clears
 - [ ] Audit log of all suspensions and restorations
@@ -347,10 +341,7 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 
 ## Phase 10: Platform & DevOps
 
-- [ ] AutoField SuperAdmin panel (manage all workshops from one dashboard)
-- [ ] White-label onboarding wizard (business name, colors, logo, domain)
+- [x] AutoField SuperAdmin panel removed — Autofield is out of scope for this repo (MotionGrid-only)
 - [ ] Backup & restore console
-- [ ] API documentation for AutoField public API
 - [ ] Deployment dashboard (client sites status, uptime, last deploy)
 - [ ] Internal time/expense tracking per client project
-- [ ] Multi-tenant architecture for all products

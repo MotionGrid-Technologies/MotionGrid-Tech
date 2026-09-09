@@ -1,22 +1,47 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { getCookieConsent } from "@/lib/cookies";
+import { isPostHogConfigured } from "@/lib/posthog";
+import { buildPostHogPageviewUrl } from "@/lib/posthog-pageview";
 
-const posthogConfigured = Boolean(
-  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN && process.env.NEXT_PUBLIC_POSTHOG_HOST,
-);
+// Captures a $pageview for the initial load and every client-side navigation.
+// Wrapped in <Suspense> because useSearchParams opts the route into dynamic
+// rendering and requires a Suspense boundary.
+function PostHogPageView() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!isPostHogConfigured || !pathname) return;
+
+    const url = buildPostHogPageviewUrl(
+      window.location.origin,
+      pathname,
+      new URLSearchParams(searchParams.toString()),
+    );
+    if (!url) return;
+
+    // Safe to call regardless of consent: PostHog no-ops when opted out.
+    posthog.capture("$pageview", { $current_url: url });
+  }, [pathname, searchParams]);
+
+  return null;
+}
 
 export function PostHogProvider() {
   useEffect(() => {
-    if (!posthogConfigured) return;
+    if (!isPostHogConfigured) return;
 
     const syncConsent = () => {
       if (getCookieConsent() === "accepted") {
+        posthog.set_config({ persistence: "localStorage+cookie" });
         posthog.opt_in_capturing();
       } else {
         posthog.opt_out_capturing();
+        posthog.set_config({ persistence: "memory" });
       }
     };
 
@@ -25,6 +50,9 @@ export function PostHogProvider() {
     return () => window.removeEventListener("cookie_consent_updated", syncConsent);
   }, []);
 
-  return null;
+  return (
+    <Suspense fallback={null}>
+      <PostHogPageView />
+    </Suspense>
+  );
 }
-
