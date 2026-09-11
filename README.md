@@ -99,6 +99,55 @@ types/database.ts         generated from the MotionGrid Supabase project
 - Postgres-backed rate limiting (login, forms, API).
 - Fully responsive, keyboard-focus visible, reduced-motion respected.
 
+## Scheduling, sequences, scoring & analytics
+
+The contact page's primary flow is a **15-minute slot picker** (no Cal.com
+dependency — the grid, validation, and double-booking guard are all in-house):
+
+- `lib/booking-slots.ts` — authoritative slot rules (Mon–Fri, 09:00–16:00
+  SAST, quarter-hour grid, 1h lead time, 30-day window).
+- `app/api/booking/availability` — public per-date availability feed.
+- `lib/actions/dashboard.ts` (`bookDemoSlot`) — validates and stores the
+  booking (`demo_bookings` + a scored `demo_requests` row), then sends the
+  confirmation **with a generated .ics calendar invite** (`lib/ics.ts`) plus
+  an admin notification.
+- Bookings surface on the admin dashboard with cancel/complete actions.
+
+**Welcome email sequence** (`lib/email-sequences.ts`): every new lead is
+enrolled at intake; step 1 sends immediately, steps 2 (48h) and 3 (120h) are
+released by the cron route:
+
+```bash
+curl -X POST https://motiongrid.co.za/api/cron/email-sequences \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Schedule it hourly (Vercel Cron, GitHub Actions, or any crontab). Progress
+lives in the `email_sequence_enrollments` table.
+
+**Lead scoring** (`lib/lead-scoring.ts`): every demo request is scored 0–100
+at intake (company, business email domain, phone, message depth, intent
+keywords, budget mentions) and tiered hot/warm/cold — shown as a badge on the
+admin dashboard and averaged on the analytics page.
+
+**Analytics** (`/dashboard/admin/analytics`): live revenue (PayFast), lead
+and booking trends, MRR and churn from the `subscriptions` table.
+
+## Client-app kill switch
+
+Every Next.js app MotionGrid hosts for a client ships
+`lib/kill-switch-middleware.ts` (copy it into the client app — it is
+deliberately self-contained). The middleware checks this site's status feed:
+
+```
+GET /api/subscription-status?domain=<client-domain>
+Header: x-kill-switch-key: <KILL_SWITCH_API_KEY>
+```
+
+and redirects visitors to the suspension page when the client's subscription
+is `past_due`/`cancelled`. Fail-open on feed errors, 5-minute in-memory
+cache, `clients`/`subscriptions` tables hold the source of truth.
+
 ## Deliberately left for later (per the brief)
 
 PayFast ITN webhook/data flow, customer login portal, public status page, and API

@@ -10,7 +10,13 @@ import {
   type DemoRequestStatus,
   type PayFastPayment,
 } from "@/lib/lead-store";
-import { removeDemoRequest, setDemoRequestStatus } from "@/lib/actions/dashboard";
+import { listBookings, type DemoBooking } from "@/lib/booking-store";
+import { formatSlotSast } from "@/lib/booking-slots";
+import {
+  removeDemoRequest,
+  setBookingStatus,
+  setDemoRequestStatus,
+} from "@/lib/actions/dashboard";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
 // Data must be read per-request, never baked in at build time.
@@ -24,11 +30,21 @@ export const metadata = { title: "Dashboard", robots: { index: false, follow: fa
 export default async function AdminDashboardPage() {
   const demos = await listDemoRequests();
   const payments = await listPayFastPayments();
+  const bookings = await listBookings();
+  const now = new Date();
+
+  const upcoming = bookings.filter(
+    (b) => b.status === "scheduled" && new Date(b.slot_start) > now
+  );
+  const past = bookings.filter(
+    (b) => b.status !== "scheduled" || new Date(b.slot_start) <= now
+  );
 
   const counts = {
     new: demos.filter((d) => d.status === "new").length,
     contacted: demos.filter((d) => d.status === "contacted").length,
     archived: demos.filter((d) => d.status === "archived").length,
+    hot: demos.filter((d) => d.score_tier === "hot").length,
   };
 
   return (
@@ -42,9 +58,9 @@ export default async function AdminDashboardPage() {
             <SignOutButton />
           </div>
           <p className="max-w-xl text-sm leading-relaxed text-chrome-500">
-            Manage demo requests coming off the contact form and review PayFast
-            transactions. PayFast is a read-only feed until the ITN webhook is
-            connected.
+            Manage demo requests and booked calls coming off the contact page,
+            and review PayFast transactions. PayFast is a read-only feed until
+            the ITN webhook is connected.
           </p>
         </header>
 
@@ -52,8 +68,34 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="Open requests" value={counts.new} />
           <Stat label="Contacted" value={counts.contacted} />
-          <Stat label="Archived" value={counts.archived} />
-          <Stat label="PayFast payments" value={payments.length} />
+          <Stat label="Hot leads" value={counts.hot} />
+          <Stat label="Upcoming calls" value={upcoming.length} />
+        </div>
+
+        {/* Upcoming bookings ---------------------------------------------- */}
+        <div className="flex flex-col gap-6">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-2xl text-chrome-100">Upcoming calls</h2>
+            <Link
+              href="/contact#demo"
+              className="flex items-center gap-1 text-sm text-chrome-300 hover:text-chrome-100"
+            >
+              View public slots <ArrowUpRight size={14} />
+            </Link>
+          </div>
+
+          {upcoming.length === 0 ? (
+            <EmptyCard
+              label="No calls booked"
+              note="Bookings from the 15-minute slot picker on the contact page will appear here."
+            />
+          ) : (
+            <div className="flex flex-col divide-y divide-hairline rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
+              {upcoming.map((b) => (
+                <BookingRow key={b.id} booking={b} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Demo requests --------------------------------------------------- */}
@@ -71,7 +113,7 @@ export default async function AdminDashboardPage() {
           {demos.length === 0 ? (
             <EmptyCard
               label="No requests yet"
-              note="Submissions from the “Book a demo” form will appear here."
+              note="Submissions from the contact page will appear here."
             />
           ) : (
             <div className="flex flex-col divide-y divide-hairline rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
@@ -81,6 +123,18 @@ export default async function AdminDashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Past bookings --------------------------------------------------- */}
+        {past.length > 0 && (
+          <div className="flex flex-col gap-6">
+            <h2 className="font-display text-2xl text-chrome-100">Booking history</h2>
+            <div className="flex flex-col divide-y divide-hairline rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
+              {past.slice(0, 20).map((b) => (
+                <BookingRow key={b.id} booking={b} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* PayFast payments ----------------------------------------------- */}
         <div className="flex flex-col gap-6">
@@ -128,6 +182,12 @@ const STATUS_TONE: Record<DemoRequestStatus, string> = {
   archived: "text-chrome-700 border-hairline",
 };
 
+const TIER_TONE: Record<string, string> = {
+  hot: "text-signal border-signal/40",
+  warm: "text-chrome-100 border-chrome-500",
+  cold: "text-chrome-700 border-hairline",
+};
+
 function DemoRow({ request: r }: { request: DemoRequest }) {
   const created = new Date(r.created_at).toLocaleString("en-ZA", {
     dateStyle: "medium",
@@ -145,6 +205,14 @@ function DemoRow({ request: r }: { request: DemoRequest }) {
           >
             {STATUS_LABEL[r.status]}
           </span>
+          {r.score_tier && (
+            <span
+              className={`rounded-full border px-2.5 py-0.5 text-[0.7rem] tracking-wide ${TIER_TONE[r.score_tier] ?? ""}`}
+              title={r.score !== null ? `Lead score: ${r.score}/100` : undefined}
+            >
+              {r.score_tier} · {r.score ?? "—"}
+            </span>
+          )}
           <span className="text-xs text-chrome-700">{created}</span>
         </div>
         {r.company && <p className="text-sm text-chrome-300">{r.company}</p>}
@@ -202,6 +270,62 @@ function formatZAR(value: number) {
     style: "currency",
     currency: "ZAR",
   }).format(value);
+}
+
+const BOOKING_STATUS_TONE: Record<DemoBooking["status"], string> = {
+  scheduled: "text-signal border-signal/40",
+  completed: "text-chrome-100 border-chrome-500",
+  cancelled: "text-chrome-700 border-hairline",
+};
+
+function BookingRow({ booking: b }: { booking: DemoBooking }) {
+  const slot = formatSlotSast(new Date(b.slot_start));
+
+  return (
+    <article className="flex flex-col gap-4 p-6 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-2 md:max-w-[60%]">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="font-display text-lg text-chrome-100">{slot}</h3>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-[0.7rem] tracking-wide ${BOOKING_STATUS_TONE[b.status]}`}
+          >
+            {b.status}
+          </span>
+          <span className="text-xs text-chrome-700">{b.duration_minutes} min</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 text-sm text-chrome-300">
+          <span className="font-display">{b.name}</span>
+          {b.company && <span className="text-chrome-500">{b.company}</span>}
+        </div>
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-chrome-500">
+          <a href={`mailto:${b.email}`} className="hover:text-chrome-100">
+            {b.email}
+          </a>
+          {b.phone && <a href={`tel:${b.phone.replace(/\s+/g, "")}`}>{b.phone}</a>}
+        </div>
+        {b.message && (
+          <p className="mt-1 text-sm leading-relaxed text-chrome-500">{b.message}</p>
+        )}
+      </div>
+
+      {b.status === "scheduled" && (
+        <form className="flex shrink-0 flex-wrap gap-2">
+          <button
+            formAction={setBookingStatus.bind(null, b.id, "completed")}
+            className="rounded-[var(--radius-mg)] border border-hairline px-3 py-1.5 text-xs text-chrome-300 hover:border-chrome-500 hover:text-chrome-100"
+          >
+            Mark completed
+          </button>
+          <button
+            formAction={setBookingStatus.bind(null, b.id, "cancelled")}
+            className="rounded-[var(--radius-mg)] border border-signal/30 px-3 py-1.5 text-xs text-signal hover:border-signal"
+          >
+            Cancel
+          </button>
+        </form>
+      )}
+    </article>
+  );
 }
 
 function PaymentsTable({ payments }: { payments: PayFastPayment[] }) {

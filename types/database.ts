@@ -219,6 +219,89 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          created_at: string
+          domain: string | null
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          project_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          project_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          project_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      demo_bookings: {
+        Row: {
+          company: string
+          created_at: string
+          demo_request_id: string | null
+          duration_minutes: number
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string
+          slot_start: string
+          status: string
+        }
+        Insert: {
+          company?: string
+          created_at?: string
+          demo_request_id?: string | null
+          duration_minutes?: number
+          email: string
+          id?: string
+          message?: string
+          name: string
+          phone?: string
+          slot_start: string
+          status?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          demo_request_id?: string | null
+          duration_minutes?: number
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string
+          slot_start?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_bookings_demo_request_id_fkey"
+            columns: ["demo_request_id"]
+            isOneToOne: false
+            referencedRelation: "demo_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_requests: {
         Row: {
           company: string
@@ -228,6 +311,9 @@ export type Database = {
           message: string
           name: string
           phone: string
+          score: number | null
+          score_breakdown: Json | null
+          score_tier: string | null
           status: string
         }
         Insert: {
@@ -238,6 +324,9 @@ export type Database = {
           message?: string
           name: string
           phone?: string
+          score?: number | null
+          score_breakdown?: Json | null
+          score_tier?: string | null
           status?: string
         }
         Update: {
@@ -248,7 +337,46 @@ export type Database = {
           message?: string
           name?: string
           phone?: string
+          score?: number | null
+          score_breakdown?: Json | null
+          score_tier?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      email_sequence_enrollments: {
+        Row: {
+          current_step: number
+          enrolled_at: string
+          id: string
+          lead_email: string
+          lead_name: string
+          next_send_at: string | null
+          sequence_key: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          current_step?: number
+          enrolled_at?: string
+          id?: string
+          lead_email: string
+          lead_name?: string
+          next_send_at?: string | null
+          sequence_key: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          current_step?: number
+          enrolled_at?: string
+          id?: string
+          lead_email?: string
+          lead_name?: string
+          next_send_at?: string | null
+          sequence_key?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -416,6 +544,50 @@ export type Database = {
           window_started?: string
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          currency: string
+          id: string
+          next_billing_date: string | null
+          plan: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          next_billing_date?: string | null
+          plan: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          next_billing_date?: string | null
+          plan?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

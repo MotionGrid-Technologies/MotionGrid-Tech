@@ -1,6 +1,6 @@
 # MotionGrid Technologies — TODO / Roadmap
 
-Last updated: 2026-09-07 (audited against codebase)
+Last updated: 2026-09-11 (slot booking, welcome sequence, lead scoring, analytics, kill-switch middleware shipped)
 
 ---
 
@@ -156,9 +156,10 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [x] Remove `serverExternalPackages: ["better-sqlite3"]` from `next.config.ts`
 - [x] Create Supabase tables:
   - [x] `demo_requests` (name, company, email, phone, message, status, created_at)
-  - [-] `payfast_payments` (pf_payment_id, amounts, status, timestamps) (migration exists; no ITN webhook/data flow yet)
-  - [ ] `subscriptions` (client_id, plan, status, amount, next_billing_date)
-  - [ ] `clients` (name, email, domain, project_status, workshop_slug)
+  - [x] `payfast_payments` (pf_payment_id, amounts, status, timestamps) (read-only feed live in admin dashboard; ITN webhook still pending)
+  - [x] `subscriptions` (client_id, plan, status, amount, currency, next_billing_date) — created in `migrations/20260911_motiongrid_clients_bookings.sql`; feeds MRR/churn analytics + the client-app kill switch (PayFast ITN webhook still pending for automated status changes)
+  - [x] `clients` (name, email, domain, project_status, notes) — created in the same migration; client-portal login itself is still Phase 3.2
+  - [x] `demo_bookings` + `email_sequence_enrollments` (same migration) — 15-min slot flow + welcome sequence
 - [-] Enable Row Level Security on all tables (`demo_requests`/`payfast_payments` have RLS; broader audit needed)
 - [ ] Create `public.current_workshop_id()` helper for multi-tenant isolation
 - [ ] Set up Supabase Storage for client asset uploads
@@ -249,9 +250,9 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [ ] Pay deposit via PayFast integration
 
 ### 3.3 Smart Scheduling
-- [ ] Integrate Cal.com or Calendly embed on `/contact`
-- [ ] Replace generic form with "pick a 15-min slot" flow
-- [ ] Auto-calendar invite + confirmation email on booking
+- [x] **In-house 15-min slot picker replaces the Cal.com/Calendly embed** — no external dependency: `lib/booking-slots.ts` (Mon–Fri 09:00–16:00 SAST, quarter-hour grid, 1h lead, 30-day window), `/api/booking/availability` feed, `bookDemoSlot` action, `SlotPicker` on `/contact` (Cal.com embed no longer needed)
+- [x] Replace generic form with "pick a 15-min slot" flow — slot picker is the primary contact flow; classic message form stays as the fallback tab
+- [x] Auto-calendar invite + confirmation email on booking — `lib/ics.ts` generates a real METHOD:REQUEST invite attached to the confirmation email; admin notification email also carries the invite
 - [ ] WhatsApp share link for "Book a slot" texts
 
 ---
@@ -283,8 +284,8 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 ## Phase 5: Email Communications
 > ⚠️ Tie email triggers to Supabase events (Edge Functions or database webhooks)
 
-- [ ] Welcome email sequence for new leads
-- [ ] Demo request confirmation + calendar invite
+- [x] Welcome email sequence for new leads — 3-step sequence (`lib/email-sequences.ts` + `welcome_email_1/2/3` templates): step 1 sends at intake, steps 2 (48h) and 3 (120h) release via `/api/cron/email-sequences` (CRON_SECRET bearer; schedule hourly)
+- [x] Demo request confirmation + calendar invite — booking confirmation email carries a generated .ics invite; plain message-flow leads get the existing confirmation email + sequence step 1
 - [ ] Proposal sent / viewed / signed notifications
 - [ ] Invoice sent / paid / overdue notifications
 - [ ] Failed payment dunning sequence (3-day, 7-day, 14-day)
@@ -297,8 +298,8 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 ## Phase 6: Client "Kill Switch"
 > ⚠️ Depends on Supabase `subscriptions` table + client app middleware
 
-- [ ] Supabase `subscriptions.status` field + webhook on payment failure
-- [ ] Middleware check in all client Next.js apps against Supabase subscription status
+- [ ] Supabase `subscriptions.status` field + webhook on payment failure (status field exists; automated PayFast-failure webhook still pending)
+- [x] Middleware check in all client Next.js apps against Supabase subscription status — reusable, self-contained `lib/kill-switch-middleware.ts` (copy into each client app) + `/api/subscription-status` feed on this site (`x-kill-switch-key` shared secret; fail-open on feed errors; 5-min cache). Roll out per client app at deploy time.
 - [ ] Auto-redirect to `hosting-suspended.motiongrid.co.za` if `past_due` exceeds threshold
 - [ ] Suspension page with payment update form
 - [ ] Auto-restore service after payment clears
@@ -323,8 +324,8 @@ Most of this will be removed once Supabase + Vercel are connected for security.
 - [ ] Live chat widget (e.g., Crisp, Intercom, or custom)
 - [ ] FAQ chatbot for common questions
 - [ ] CRM integration (HubSpot or Pipedrive)
-- [ ] Lead scoring
-- [ ] Admin analytics dashboard (revenue, leads, MRR, churn)
+- [x] Lead scoring — transparent rule-based 0–100 score at intake (`lib/lead-scoring.ts`: company, business email domain, phone, message depth, intent keywords, budget mentions; hot/warm/cold tiers), stored on `demo_requests` and shown as a badge on the admin dashboard
+- [x] Admin analytics dashboard (revenue, leads, MRR, churn) — `/dashboard/admin/analytics`: PayFast revenue by month, lead/booking trends, MRR + churn from `subscriptions`, hot-lead + avg-score figures (recharts)
 
 ---
 

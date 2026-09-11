@@ -22,6 +22,12 @@ const siteSupabaseHost = process.env.SITE_SUPABASE_URL
   : "";
 
 const nextConfig: NextConfig = {
+  // Pin the Turbopack workspace root to this project: stray lockfiles in
+  // parent directories (e.g. a user-home package-lock.json) otherwise make
+  // Next infer the wrong root.
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {

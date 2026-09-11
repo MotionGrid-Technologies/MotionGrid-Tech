@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { scoreLead } from "@/lib/lead-scoring";
 
 // ---------------------------------------------------------------------------
 // MotionGrid lead store. Replaces the old better-sqlite3 store (lib/db.ts).
@@ -40,6 +41,8 @@ export type DemoRequest = {
   message: string;
   status: DemoRequestStatus;
   created_at: string;
+  score: number | null;
+  score_tier: string | null;
 };
 
 export type PayFastPaymentStatus =
@@ -73,7 +76,11 @@ export async function insertDemoRequest(input: {
   email: string;
   phone: string;
   message: string;
-}): Promise<void> {
+}): Promise<{ score: number; tier: string }> {
+  // Score at intake (TODO Phase 8) so every lead carries its rank from the
+  // moment it lands.
+  const { score, tier, breakdown } = scoreLead(input);
+
   const { error } = await createSiteClient()
     .from("demo_requests")
     .insert({
@@ -82,9 +89,13 @@ export async function insertDemoRequest(input: {
       email: input.email,
       phone: input.phone,
       message: input.message,
+      score,
+      score_tier: tier,
+      score_breakdown: breakdown,
     });
 
   if (error) throw error;
+  return { score, tier };
 }
 
 export async function listDemoRequests(): Promise<DemoRequest[]> {
@@ -104,6 +115,8 @@ export async function listDemoRequests(): Promise<DemoRequest[]> {
     message: row.message,
     status: row.status as DemoRequestStatus,
     created_at: row.created_at,
+    score: row.score,
+    score_tier: row.score_tier,
   }));
 }
 

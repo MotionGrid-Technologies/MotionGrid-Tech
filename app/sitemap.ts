@@ -25,13 +25,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const posts = await listAllPublishedBlogPosts();
-  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${site.url}/blog/${post.slug}`,
-    lastModified: new Date(post.updated_at),
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+  // Best-effort blog entries: a Supabase outage or misconfigured key must
+  // never fail the whole build — the sitemap still ships with every static
+  // route, and the post URLs return on the next successful build.
+  let postEntries: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await listAllPublishedBlogPosts();
+    postEntries = posts.map((post) => ({
+      url: `${site.url}/blog/${post.slug}`,
+      lastModified: new Date(post.updated_at),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.warn("[sitemap] blog posts unavailable, shipping static routes only", error);
+  }
 
   return [...staticEntries, ...postEntries];
 }
