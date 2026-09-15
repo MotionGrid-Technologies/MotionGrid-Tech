@@ -9,6 +9,7 @@ import {
   updateDemoRequestStatus,
   type DemoRequestStatus,
 } from "@/lib/lead-store";
+import { setMeetingStatus, type MeetingStatus } from "@/lib/meetings-store";
 import { createSiteSupabaseServerClient, getRoleFromJWT } from "@/lib/siteSupabaseServer";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, getClientIpFromHeaders } from "@/lib/rate-limiter";
@@ -105,5 +106,18 @@ export async function setDemoRequestStatus(
 export async function removeDemoRequest(id: string): Promise<void> {
   if (!(await requireDashboardAccess())) redirect("/login");
   await deleteDemoRequest(id);
+  revalidatePath("/dashboard/admin/dashboard");
+}
+
+// ---------------------------------------------------------------------------
+// Booked 15-minute meetings (public slot calendar on /contact#booking).
+// ---------------------------------------------------------------------------
+
+export async function setMeetingStatusAction(
+  id: string,
+  status: MeetingStatus
+): Promise<void> {
+  if (!(await requireDashboardAccess())) redirect("/login");
+  await setMeetingStatus(id, status);
   revalidatePath("/dashboard/admin/dashboard");
 }

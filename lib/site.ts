@@ -19,6 +19,8 @@ export const navItems = [
   { label: "Products", href: "/products" },
   { label: "Technology", href: "/technology" },
   { label: "Industries", href: "/industries#active-industries" },
+  { label: "Case Studies", href: "/case-studies" },
+  { label: "Testimonials", href: "/testimonials" },
   { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
@@ -38,11 +40,13 @@ export const footerColumns = [
       { label: "Products", href: "/products" },
       { label: "Industries", href: "/industries#active-industries" },
       { label: "Technology", href: "/technology" },
+      { label: "Case Studies", href: "/case-studies" },
     ],
   },
   {
     title: "Explore",
     links: [
+      { label: "Testimonials", href: "/testimonials" },
       { label: "Blog", href: "/blog" },
       { label: "Live Sandbox", href: "/sandbox" },
       { label: "Micro-Tools", href: "/tools" },

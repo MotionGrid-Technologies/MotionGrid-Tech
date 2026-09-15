@@ -219,6 +219,39 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          company: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demo_requests: {
         Row: {
           company: string
@@ -324,6 +357,47 @@ export type Database = {
         }
         Relationships: []
       }
+      meetings: {
+        Row: {
+          business_problem: string | null
+          client_id: string
+          created_at: string
+          id: string
+          preparation_notes: string | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_problem?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          preparation_notes?: string | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_problem?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          preparation_notes?: string | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payfast_payments: {
         Row: {
           amount_fee: number
@@ -396,6 +470,164 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          proposal_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          proposal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          proposal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: true
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          position: number
+          proposal_id: string
+          quantity: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          position?: number
+          proposal_id: string
+          quantity?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          position?: number
+          proposal_id?: string
+          quantity?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_items_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          public_token: string
+          rejected_at: string | null
+          sent_at: string | null
+          status: string
+          title: string
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          public_token?: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          title: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          public_token?: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_counters: {
         Row: {
           identifier: string
@@ -414,6 +646,45 @@ export type Database = {
           request_count?: number
           updated_at?: string
           window_started?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          author: string
+          company: string | null
+          created_at: string
+          id: string
+          quote: string
+          rating: number
+          role: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          company?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+          rating: number
+          role?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          company?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+          rating?: number
+          role?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

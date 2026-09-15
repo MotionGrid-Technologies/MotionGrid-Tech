@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listAllPublishedBlogPosts } from "@/lib/blog-store";
+import { caseStudies } from "@/lib/case-studies";
 import { site } from "@/lib/site";
 
 const staticRoutes = [
@@ -8,6 +9,8 @@ const staticRoutes = [
   { path: "/products", changeFrequency: "monthly" as const, priority: 0.6 },
   { path: "/technology", changeFrequency: "monthly" as const, priority: 0.6 },
   { path: "/industries", changeFrequency: "monthly" as const, priority: 0.6 },
+  { path: "/case-studies", changeFrequency: "monthly" as const, priority: 0.6 },
+  { path: "/testimonials", changeFrequency: "monthly" as const, priority: 0.5 },
   { path: "/blog", changeFrequency: "daily" as const, priority: 0.8 },
   { path: "/contact", changeFrequency: "monthly" as const, priority: 0.6 },
   { path: "/sandbox", changeFrequency: "monthly" as const, priority: 0.5 },
@@ -25,13 +28,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const posts = await listAllPublishedBlogPosts();
-  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${site.url}/blog/${post.slug}`,
-    lastModified: new Date(post.updated_at),
-    changeFrequency: "weekly",
-    priority: 0.7,
+  const caseStudyEntries: MetadataRoute.Sitemap = caseStudies.map((cs) => ({
+    url: `${site.url}/case-studies/${cs.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.5,
   }));
 
-  return [...staticEntries, ...postEntries];
+  // Blog posts come from Supabase. If the DB is unreachable (e.g. building in
+  // an environment without credentials), ship the static + case-study entries
+  // rather than failing the whole build — the next successful build catches up.
+  let postEntries: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await listAllPublishedBlogPosts();
+    postEntries = posts.map((post) => ({
+      url: `${site.url}/blog/${post.slug}`,
+      lastModified: new Date(post.updated_at),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch (err) {
+    console.error("[sitemap] Could not read blog posts — shipping without them:", err);
+  }
+
+  return [...staticEntries, ...caseStudyEntries, ...postEntries];
 }

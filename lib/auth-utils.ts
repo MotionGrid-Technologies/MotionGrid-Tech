@@ -1,3 +1,16 @@
+import { createSiteSupabaseServerClient, getRoleFromJWT } from '@/lib/siteSupabaseServer'
+
+// Shared guard for admin Server Actions. Returns true when the current
+// Supabase session carries an admin or super_admin role claim. Callers
+// should redirect to /login when this returns false.
+export async function requireAdminSession(): Promise<boolean> {
+  const supabase = await createSiteSupabaseServerClient()
+  const { data, error } = await supabase.auth.getClaims()
+  if (error || !data?.claims) return false
+  const role = getRoleFromJWT(data.claims)
+  return role === 'admin' || role === 'super_admin'
+}
+
 export function sanitizeAuthError(error: unknown): string {
   if (error instanceof Error) {
     const message = error.message.toLowerCase()

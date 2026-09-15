@@ -7,6 +7,8 @@ const STATUS_STYLES: Record<string, string> = {
   sent: "bg-blue-100 text-blue-800 border-blue-200",
   confirmed: "bg-primary/10 text-primary border-primary/30",
   accepted: "bg-green-100 text-green-800 border-green-200",
+  approved: "bg-green-100 text-green-800 border-green-200",
+  rejected: "bg-red-100 text-red-800 border-red-200",
   in_progress: "bg-primary/10 text-primary border-primary/30",
   awaiting_parts: "bg-amber-100 text-amber-800 border-amber-200",
   ready_for_pickup: "bg-green-100 text-green-800 border-green-200",

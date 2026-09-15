@@ -338,6 +338,26 @@ body {
   animation: mg-pulse 2.8s ease-in-out infinite;
 }
 
+/* Client logos marquee — seamless loop over a duplicated track. Disabled
+   under prefers-reduced-motion (the row then sits static, still readable). */
+@keyframes mg-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.mg-marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mg-marquee-track {
+    animation: mg-marquee 38s linear infinite;
+  }
+  .mg-marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+  }
+}
+
 /* Filament signal node — scroll-driven travel (JS) + pulse (CSS). */
 .mg-filament-node {
   offset-rotate: 0deg;

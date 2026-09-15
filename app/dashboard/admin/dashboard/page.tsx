@@ -10,7 +10,12 @@ import {
   type DemoRequestStatus,
   type PayFastPayment,
 } from "@/lib/lead-store";
-import { removeDemoRequest, setDemoRequestStatus } from "@/lib/actions/dashboard";
+import {
+  formatSlotLabel,
+  listMeetings,
+  type MeetingRecord,
+} from "@/lib/meetings-store";
+import { removeDemoRequest, setDemoRequestStatus, setMeetingStatusAction } from "@/lib/actions/dashboard";
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
 // Data must be read per-request, never baked in at build time.
@@ -22,8 +27,13 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard", robots: { index: false, follow: false } };
 
 export default async function AdminDashboardPage() {
-  const demos = await listDemoRequests();
-  const payments = await listPayFastPayments();
+  const [demos, payments, meetings] = await Promise.all([
+    listDemoRequests(),
+    listPayFastPayments(),
+    listMeetings().catch(() => [] as MeetingRecord[]),
+  ]);
+
+  const upcoming = meetings.filter((m) => m.status === "scheduled");
 
   const counts = {
     new: demos.filter((d) => d.status === "new").length,
@@ -52,8 +62,34 @@ export default async function AdminDashboardPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="Open requests" value={counts.new} />
           <Stat label="Contacted" value={counts.contacted} />
-          <Stat label="Archived" value={counts.archived} />
+          <Stat label="Upcoming meetings" value={upcoming.length} />
           <Stat label="PayFast payments" value={payments.length} />
+        </div>
+
+        {/* Upcoming 15-min meetings ---------------------------------------- */}
+        <div className="flex flex-col gap-6">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-2xl text-chrome-100">Upcoming meetings</h2>
+            <Link
+              href="/contact#booking"
+              className="flex items-center gap-1 text-sm text-chrome-300 hover:text-chrome-100"
+            >
+              View booking calendar <ArrowUpRight size={14} />
+            </Link>
+          </div>
+
+          {upcoming.length === 0 ? (
+            <EmptyCard
+              label="No meetings booked"
+              note="15-minute slots booked from the public calendar will appear here."
+            />
+          ) : (
+            <div className="flex flex-col divide-y divide-hairline rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
+              {upcoming.map((m) => (
+                <MeetingRow key={m.id} meeting={m} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Demo requests --------------------------------------------------- */}
@@ -202,6 +238,53 @@ function formatZAR(value: number) {
     style: "currency",
     currency: "ZAR",
   }).format(value);
+}
+
+function MeetingRow({ meeting: m }: { meeting: MeetingRecord }) {
+  return (
+    <article className="flex flex-col gap-4 p-6 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-2 md:max-w-[60%]">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="font-display text-lg text-chrome-100">
+            {formatSlotLabel(m.scheduled_at)}
+          </h3>
+        </div>
+        {m.client && (
+          <p className="text-sm text-chrome-300">
+            {m.client.company} · {m.client.name}
+          </p>
+        )}
+        {m.client && (
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-chrome-500">
+            <a href={`mailto:${m.client.email}`} className="hover:text-chrome-100">
+              {m.client.email}
+            </a>
+            {m.client.phone && (
+              <a href={`tel:${m.client.phone.replace(/\s+/g, "")}`}>{m.client.phone}</a>
+            )}
+          </div>
+        )}
+        {m.business_problem && (
+          <p className="mt-1 text-sm leading-relaxed text-chrome-500">{m.business_problem}</p>
+        )}
+      </div>
+
+      <form className="flex shrink-0 flex-wrap gap-2">
+        <button
+          formAction={setMeetingStatusAction.bind(null, m.id, "completed")}
+          className="rounded-[var(--radius-mg)] border border-hairline px-3 py-1.5 text-xs text-chrome-300 hover:border-chrome-500 hover:text-chrome-100"
+        >
+          Mark completed
+        </button>
+        <button
+          formAction={setMeetingStatusAction.bind(null, m.id, "cancelled")}
+          className="rounded-[var(--radius-mg)] border border-signal/30 px-3 py-1.5 text-xs text-signal hover:border-signal"
+        >
+          Cancel
+        </button>
+      </form>
+    </article>
+  );
 }
 
 function PaymentsTable({ payments }: { payments: PayFastPayment[] }) {

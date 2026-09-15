@@ -8,6 +8,9 @@ import {
   BarChart3,
   Mail,
   Newspaper,
+  FileText,
+  FolderKanban,
+  Star,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -15,6 +18,9 @@ import { signOut } from "@/app/login/actions";
 
 const items = [
   { label: "Dashboard", href: "/dashboard/admin/dashboard", icon: LayoutDashboard },
+  { label: "Proposals", href: "/dashboard/admin/proposals", icon: FileText },
+  { label: "Projects", href: "/dashboard/admin/projects", icon: FolderKanban },
+  { label: "Reviews", href: "/dashboard/admin/reviews", icon: Star },
   { label: "SEO", href: "/dashboard/admin/seo", icon: Search },
   { label: "Stats & Reports", href: "/dashboard/admin/stats", icon: BarChart3 },
   { label: "Blog", href: "/dashboard/admin/marketing/blog", icon: Newspaper },

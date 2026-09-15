@@ -194,3 +194,62 @@ export async function sendDemoConfirmationEmail(data: { name: string; email: str
     },
   })
 }
+
+export interface MeetingBookingData {
+  name: string
+  company: string
+  email: string
+  phone: string
+  notes: string
+  slot: string
+}
+
+export async function sendMeetingBookingAdminNotification(data: MeetingBookingData) {
+  const def = getDefaultTemplate('meeting_booking_notification', DEFAULT_TEMPLATES)
+  if (!def) {
+    console.error('[marketing-email] Missing template: meeting_booking_notification')
+    return { success: false, error: 'Template not found' }
+  }
+
+  return sendMarketingEmail({
+    to: process.env.ADMIN_NOTIFICATION_EMAIL || DEFAULT_ADMIN_EMAIL,
+    subject: def.subject,
+    html: def.html,
+    text: def.text,
+    templateKey: 'meeting_booking_notification',
+    variables: {
+      name: data.name,
+      company: data.company || '—',
+      email: data.email,
+      phone: data.phone || '—',
+      notes: data.notes || '—',
+      slot: data.slot,
+      businessName: process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
+    },
+  })
+}
+
+export async function sendMeetingBookingConfirmationEmail(data: {
+  name: string
+  email: string
+  slot: string
+}) {
+  const def = getDefaultTemplate('meeting_booking_confirmation', DEFAULT_TEMPLATES)
+  if (!def) {
+    console.error('[marketing-email] Missing template: meeting_booking_confirmation')
+    return { success: false, error: 'Template not found' }
+  }
+
+  return sendMarketingEmail({
+    to: data.email,
+    subject: def.subject,
+    html: def.html,
+    text: def.text,
+    templateKey: 'meeting_booking_confirmation',
+    variables: {
+      name: data.name,
+      slot: data.slot,
+      businessName: process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
+    },
+  })
+}

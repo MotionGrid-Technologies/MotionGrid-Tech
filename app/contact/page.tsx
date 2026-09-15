@@ -1,23 +1,18 @@
-"use client";
-
-import { useActionState, useRef, useState } from "react";
-import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { Lock, Mail, Phone } from "lucide-react";
-import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Button } from "@/components/ui/Button";
+import { BookingCalendar } from "@/components/sections/BookingCalendar";
+import { ContactForm } from "./ContactForm";
 import { founders, site } from "@/lib/site";
-import posthog from "posthog-js";
-import { submitDemoRequest, type DemoFormState } from "@/lib/actions/dashboard";
-import { isPostHogConfigured } from "@/lib/posthog";
+import { getBookableSlots, listBookableDays } from "@/lib/meetings-store";
 
-export default function ContactPage() {
-  const initialState: DemoFormState = { ok: false, message: "" };
-  const [state, formAction, pending] = useActionState(submitDemoRequest, initialState);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
+export default async function ContactPage() {
+  // Availability is computed per-request: booked slots must disappear as
+  // soon as someone takes them.
+  const days = await listBookableDays();
+  const firstDay = days[0]?.iso ?? "";
+  const firstDaySlots = firstDay ? await getBookableSlots(firstDay) : [];
 
   return (
     <>
@@ -30,95 +25,10 @@ export default function ContactPage() {
 
       <section className="py-24 md:py-28">
         <Container className="grid grid-cols-1 gap-16 lg:grid-cols-[1.1fr_1fr]">
-          {/* ---------------------------------------------------------- */}
-          {/* Demo / contact-sales form — saves to the adminj2-v1 store.   */}
-          {/* ---------------------------------------------------------- */}
-          <div id="demo" className="scroll-mt-24">
-            <SectionHeading
-              eyebrow="Book a demo"
-              title="Tell us about the problem."
-              lede="Fill this in and we'll come back with times that work."
-              className="mb-10"
-            />
-            <form
-              action={formAction}
-              onSubmit={() => {
-                if (isPostHogConfigured) posthog.capture("demo_request_submitted");
-                // Clear the token and reset the widget so the next submission
-                // requires a fresh challenge (including after validation or
-                // persistence failures).
-                setTurnstileToken("");
-                turnstileRef.current?.reset();
-              }}
-              className="flex flex-col gap-5"
-            >
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <Field label="Full name" name="name" error={state.errors?.name} />
-                <Field label="Company" name="company" />
-              </div>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <Field label="Email" name="email" type="email" error={state.errors?.email} />
-                <Field label="Phone" name="phone" type="tel" />
-              </div>
-              <div>
-                <label className="mg-eyebrow mb-2 block" htmlFor="message">
-                  What are you trying to solve?
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  className="w-full rounded-[var(--radius-mg)] border border-hairline bg-graphite/50 px-4 py-3 text-sm text-chrome-100 placeholder:text-chrome-700 focus:border-signal/60"
-                  placeholder="A sentence or two is plenty to start."
-                />
-                {state.errors?.message && (
-                  <p className="mt-2 text-xs text-signal">{state.errors.message}</p>
-                )}
-              </div>
-              <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+          {/* Demo / contact-sales form ------------------------------------- */}
+          <ContactForm />
 
-              <Turnstile
-                ref={turnstileRef}
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
-                options={{
-                  action: "demo_request",
-                  theme: "dark",
-                  size: "normal",
-                  responseField: false,
-                }}
-                onSuccess={(token) => setTurnstileToken(token)}
-                onExpire={() => setTurnstileToken("")}
-                onError={() => setTurnstileToken("")}
-              />
-
-              {state.message && (
-                <p
-                  aria-live="polite"
-                  className={state.ok ? "text-sm text-signal" : "text-sm text-chrome-500"}
-                >
-                  {state.message}
-                </p>
-              )}
-              <Button
-                variant="primary"
-                type="submit"
-                className="self-start"
-                disabled={pending || !turnstileToken}
-              >
-                {pending ? "Sending…" : "Send"}
-              </Button>
-            </form>
-            <Link
-              href="/dashboard/admin/dashboard"
-              className="mt-8 inline-flex items-center gap-1.5 text-xs text-chrome-700 transition-colors hover:text-chrome-300"
-            >
-              <Lock size={12} /> Admin dashboard
-            </Link>
-          </div>
-
-          {/* ---------------------------------------------------------- */}
-          {/* Direct lines — one phone number per founder                 */}
-          {/* ---------------------------------------------------------- */}
+          {/* Direct lines — one phone number per founder ------------------- */}
           <div className="flex flex-col gap-8">
             <SectionHeading eyebrow="Direct lines" title="Reach us directly." />
             <div className="flex flex-col gap-6">
@@ -131,7 +41,7 @@ export default function ContactPage() {
                     <h3 className="font-display text-lg text-chrome-100">{f.name}</h3>
                     <p className="mg-eyebrow mt-1">{f.role}</p>
                   </div>
-                  
+
                   <a
                     href={`tel:${f.phone.replace(/\s+/g, "")}`}
                     className="flex items-center gap-2 text-sm text-chrome-300 hover:text-chrome-100"
@@ -160,33 +70,25 @@ export default function ContactPage() {
           </div>
         </Container>
       </section>
-    </>
-  );
-}
 
-function Field({
-  label,
-  name,
-  type = "text",
-  error,
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  error?: string;
-}) {
-  return (
-    <div>
-      <label className="mg-eyebrow mb-2 block" htmlFor={name}>
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        className="w-full rounded-[var(--radius-mg)] border border-hairline bg-graphite/50 px-4 py-3 text-sm text-chrome-100 placeholder:text-chrome-700 focus:border-signal/60"
-      />
-      {error && <p className="mt-2 text-xs text-signal">{error}</p>}
-    </div>
+      {/* 15-minute slot booking -------------------------------------------- */}
+      <section id="booking" className="border-t border-hairline bg-obsidian-soft py-24 md:py-28">
+        <Container className="flex max-w-3xl flex-col gap-10">
+          <SectionHeading
+            eyebrow="Skip the email loop"
+            title="Grab a 15-minute slot."
+            lede="Pick an open slot on a founder's calendar — confirmations are instant, and the call is short by design."
+          />
+          {days.length > 0 ? (
+            <BookingCalendar days={days} initialDay={firstDay} initialSlots={firstDaySlots} />
+          ) : (
+            <p className="text-sm text-chrome-500">
+              The booking calendar is temporarily unavailable — email {site.email} and we&apos;ll
+              set up a time.
+            </p>
+          )}
+        </Container>
+      </section>
+    </>
   );
 }
