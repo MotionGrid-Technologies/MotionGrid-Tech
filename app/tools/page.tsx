@@ -4,12 +4,15 @@ import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { EmptyCard } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Free Micro-Tools",
-  description:
-    "Small, free utilities built and maintained by MotionGrid Technologies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/tools", {
+    title: "Free Micro-Tools",
+    description:
+      "Small, free utilities built and maintained by MotionGrid Technologies.",
+  });
+}
 
 const tools: { name: string; description: string; status: "active" | "soon"; icon: LucideIcon }[] = [
   {

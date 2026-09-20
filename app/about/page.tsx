@@ -7,12 +7,15 @@ import { ContactLine } from "@/components/ui/ContactLine";
 import { PageHero } from "@/components/sections/PageHero";
 import { FilamentDivider } from "@/components/motifs/FilamentDivider";
 import { founders } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "MotionGrid Technologies is built by two engineers who care about precision, longevity, and software that actually holds up in the field.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/about", {
+    title: "About",
+    description:
+      "MotionGrid Technologies is built by two engineers who care about precision, longevity, and software that actually holds up in the field.",
+  });
+}
 
 /** Renders the company story, principles, and founder profiles. */
 export default function AboutPage() {

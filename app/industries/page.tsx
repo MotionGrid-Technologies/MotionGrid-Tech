@@ -5,12 +5,15 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { industries } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Industries",
-  description:
-    "Industries MotionGrid Technologies builds for: plumbing, fleet maintenance, panel beating, and applied AI — with more coming soon.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/industries", {
+    title: "Industries",
+    description:
+      "Industries MotionGrid Technologies builds for: plumbing, fleet maintenance, panel beating, and applied AI — with more coming soon.",
+  });
+}
 
 /** Renders active and upcoming industry offerings. */
 export default function IndustriesPage() {

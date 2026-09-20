@@ -7,11 +7,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { TechBadge } from "@/components/ui/TechBadge";
 import { BackendFrameworks } from "@/lib/technologies";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Backend Technology",
-  description: "The backend frameworks, runtimes, and databases MotionGrid Technologies uses.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/technology/backend", {
+    title: "Backend Technology",
+    description: "The backend frameworks, runtimes, and databases MotionGrid Technologies uses.",
+  });
+}
 
 export default function BackendTechnologyPage() {
   const crumbs = [

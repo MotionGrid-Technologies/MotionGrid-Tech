@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowUpRight, Gauge, ShieldCheck, Wrench } from "lucide-react";
 import { Hero } from "@/components/sections/Hero";
 import { Container } from "@/components/ui/Container";
@@ -8,7 +9,22 @@ import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { technologies } from "@/lib/technologies";
-import { industries } from "@/lib/site";
+import { industries, site } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await buildPageMetadata("/", {
+    title: `${site.name} — Precision-built software`,
+    description: site.description,
+  });
+  return {
+    ...seo,
+    title: {
+      default: seo.title as string,
+      template: `%s — ${site.name}`,
+    },
+  };
+}
 
 /** Renders the public marketing homepage. */
 export default function Home() {

@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { LegalDoc } from "@/components/sections/LegalDoc";
 import { site } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Terms of Service",
-  description: "Terms governing use of MotionGrid Technologies' website and products.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/legal/terms", {
+    title: "Terms of Service",
+    description: "Terms governing use of MotionGrid Technologies' website and products.",
+  });
+}
 
 /** Renders MotionGrid's website terms of use. */
 export default function TermsPage() {

@@ -4,11 +4,14 @@ import { Hammer } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Products",
-  description: "In-house tools built and maintained by MotionGrid Technologies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/products", {
+    title: "Products",
+    description: "In-house tools built and maintained by MotionGrid Technologies.",
+  });
+}
 
 const products: {
   name: string;

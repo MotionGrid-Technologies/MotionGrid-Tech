@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { listApprovedReviews, type Review } from "@/lib/reviews-store";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Testimonials",
-  description: "What clients and partners say about working with MotionGrid Technologies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/testimonials", {
+    title: "Testimonials",
+    description: "What clients and partners say about working with MotionGrid Technologies.",
+  });
+}
 
 /** Renders all approved client testimonials. */
 export default async function TestimonialsPage() {

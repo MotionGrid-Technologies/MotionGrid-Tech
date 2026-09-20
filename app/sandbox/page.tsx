@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
 import { CodePlayground } from "@/components/sections/CodePlayground";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Live Sandbox",
-  description: "An interactive space to try MotionGrid's work directly in the browser.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/sandbox", {
+    title: "Live Sandbox",
+    description: "An interactive space to try MotionGrid's work directly in the browser.",
+  });
+}
 
 export default function SandboxPage() {
   return (
