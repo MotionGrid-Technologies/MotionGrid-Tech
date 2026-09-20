@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/** Renders all approved client testimonials. */
 export default async function TestimonialsPage() {
   const reviews = await listApprovedReviews();
 
@@ -44,6 +45,7 @@ export default async function TestimonialsPage() {
   );
 }
 
+/** Renders one approved testimonial with its rating and attribution. */
 function TestimonialCard({ review: r }: { review: Review }) {
   return (
     <figure className="flex flex-col gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/50 p-6">

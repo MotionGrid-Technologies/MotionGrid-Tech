@@ -64,6 +64,7 @@ function toDateTimeLocal(iso: string | null): string {
   )}:${pad(d.getMinutes())}`;
 }
 
+/** Provides the create and edit workflow for a blog post. */
 export function BlogComposer({ id, initial, categories, authors }: BlogComposerProps) {
   const router = useRouter();
   const editorRef = useRef<BlogEditorHandle>(null);
@@ -365,7 +366,7 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
                     src={featuredImageUrl}
                     alt={featuredImageAlt || title}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 1216px) 100vw, 1152px"
                     className="object-cover"
                   />
                 </div>
@@ -534,7 +535,7 @@ function ArticlePreview({
             src={featuredImageUrl}
             alt={featuredImageAlt || title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 1216px) 100vw, 1152px"
             className="object-cover"
           />
         </div>

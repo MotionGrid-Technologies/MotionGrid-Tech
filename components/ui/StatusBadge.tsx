@@ -25,6 +25,7 @@ function isPublicStatus(status: string): boolean {
   return status === "active" || status === "soon";
 }
 
+/** Renders a status label using the public or administrative visual treatment. */
 export function StatusBadge({ status }: { status: string }) {
   const publicStatus = isPublicStatus(status);
   const isActive = status === "active";

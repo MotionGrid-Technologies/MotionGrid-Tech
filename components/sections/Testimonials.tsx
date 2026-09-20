@@ -37,6 +37,7 @@ export async function Testimonials() {
   );
 }
 
+/** Renders one testimonial in the homepage review strip. */
 function TestimonialCard({ review: r }: { review: Review }) {
   return (
     <figure className="flex flex-col gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-obsidian/60 p-6">

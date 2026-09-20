@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/** Renders the company story, principles, and founder profiles. */
 export default function AboutPage() {
   return (
     <>
@@ -47,7 +48,6 @@ export default function AboutPage() {
                       alt={f.name}
                       width={112}
                       height={112}
-                      priority
                       sizes="112px"
                       className="h-28 w-28 shrink-0 rounded-full object-cover ring-1 ring-hairline"
                     />

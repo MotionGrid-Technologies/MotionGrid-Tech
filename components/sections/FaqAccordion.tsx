@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { faqs } from "@/lib/faqs";
 
+/** Renders the FAQ collection as an accessible single-open accordion. */
 export function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -46,6 +47,8 @@ export function FaqAccordion() {
               id={panelId}
               role="region"
               aria-labelledby={buttonId}
+              aria-hidden={!isOpen}
+              inert={!isOpen}
               className={cn(
                 "grid transition-[grid-template-rows] duration-300 ease-out",
                 isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"

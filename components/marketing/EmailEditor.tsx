@@ -109,6 +109,7 @@ const FALLBACK_STATE = {
   alignRight: false,
 };
 
+/** Renders formatting controls for the marketing email editor. */
 function Toolbar({ editor }: { editor: Editor | null }) {
   const state =
     useEditorState({

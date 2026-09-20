@@ -10,6 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/** Renders MotionGrid's website terms of use. */
 export default function TermsPage() {
   return (
     <LegalDoc

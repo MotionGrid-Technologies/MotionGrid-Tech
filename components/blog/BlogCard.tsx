@@ -17,6 +17,7 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+/** Renders an author's image or an initials fallback. */
 export function AuthorAvatar({
   name,
   imageUrl,
@@ -48,6 +49,7 @@ export function AuthorAvatar({
   );
 }
 
+/** Renders a linked summary card for a blog post. */
 export function BlogCard({
   post,
   showAuthor = true,

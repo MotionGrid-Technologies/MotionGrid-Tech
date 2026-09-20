@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { getCookieConsent, setCookieConsent } from "@/lib/cookies";
 
+/** Presents cookie preferences and persists the visitor's consent choice. */
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
 

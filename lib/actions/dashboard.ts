@@ -59,6 +59,7 @@ function validateLeadFields(input: {
   return errors;
 }
 
+/** Validates that a public contact submission includes privacy consent. */
 function validateConsent(formData: FormData): string | null {
   const consent = formData.get("consent");
   if (consent !== "on") {
@@ -67,6 +68,7 @@ function validateConsent(formData: FormData): string | null {
   return null;
 }
 
+/** Validates and stores a message-only demo enquiry. */
 export async function submitDemoRequest(
   _prev: DemoFormState,
   formData: FormData
@@ -133,10 +135,12 @@ export type BookingFormState = {
   nonce?: number;
 };
 
+/** Reads the prior successful-submission nonce from form data. */
 function previousNonce(formData: FormData): number {
   return Number(formData.get("nonce") ?? 0) || 0;
 }
 
+/** Validates and stores a demo booking for an available slot. */
 export async function bookDemoSlot(
   _prev: BookingFormState,
   formData: FormData

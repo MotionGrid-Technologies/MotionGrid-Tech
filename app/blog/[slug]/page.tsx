@@ -18,6 +18,7 @@ import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
+/** Builds social and search metadata for a published blog post. */
 export async function generateMetadata({
   params,
 }: {
@@ -57,6 +58,7 @@ export async function generateMetadata({
   };
 }
 
+/** Renders a published blog post and records its view on a best-effort basis. */
 export default async function BlogPostPage({
   params,
 }: {
@@ -165,7 +167,7 @@ export default async function BlogPostPage({
                 src={post.featured_image_url}
                 alt={post.featured_image_alt || post.title}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                sizes="(max-width: 767px) 100vw, 768px"
                 className="object-cover"
               />
             </div>

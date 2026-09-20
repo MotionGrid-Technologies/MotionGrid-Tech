@@ -36,6 +36,7 @@ async function loadGoogleFont(
   }
 }
 
+/** Generates the site's branded Open Graph image. */
 export default async function Image() {
   const headline = "MotionGrid Technologies";
   const tagline = "Precision-built software";

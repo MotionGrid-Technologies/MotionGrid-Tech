@@ -35,6 +35,7 @@ const tools: { name: string; description: string; status: "active" | "soon"; ico
   },
 ];
 
+/** Renders the collection of available and upcoming tools. */
 export default function ToolsPage() {
   return (
     <>
