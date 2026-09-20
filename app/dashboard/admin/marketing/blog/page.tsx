@@ -1,8 +1,6 @@
 import { NewBlogButton } from "@/components/marketing/NewBlogButton";
 import { BlogPostsTable } from "@/components/marketing/BlogPostsTable";
 import { listBlogPosts } from "@/lib/blog-store";
-import { listBlogCategories } from "@/lib/blog-store";
-import { listBlogAuthors } from "@/lib/blog-store";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +10,7 @@ export const metadata = {
 };
 
 export default async function BlogListPage() {
-  const [posts, categories, authors] = await Promise.all([
-    listBlogPosts(),
-    listBlogCategories(),
-    listBlogAuthors(),
-  ]);
+  const posts = await listBlogPosts();
 
   return (
     <section className="py-12">
@@ -28,7 +22,7 @@ export default async function BlogListPage() {
               Write, schedule, and publish articles for the public blog.
             </p>
           </div>
-          <NewBlogButton categories={categories} authors={authors} />
+          <NewBlogButton />
         </header>
 
         <BlogPostsTable posts={posts} />

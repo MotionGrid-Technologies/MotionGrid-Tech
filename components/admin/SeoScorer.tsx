@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Search } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// SEO scorer for published blog posts. Grades the post's own stored fields
-// (title, meta description, slug, content HTML) against best practices.
-// Scoring runs client-side (DOMParser) — no extra API round-trips.
+// SEO scorer for published blog posts AND live public pages.
+//
+//   - Blog posts: graded from their stored Supabase fields (source of truth).
+//   - Public pages: the chosen route's HTML is fetched live via
+//     /api/admin/seo/fetch-page?path=... and graded from real server output,
+//     so scores can never drift from what's actually being served.
+// Scoring runs client-side (DOMParser / fetched metrics) — no heavy parsing.
 // ---------------------------------------------------------------------------
 
 export interface SeoPost {
@@ -17,6 +21,33 @@ export interface SeoPost {
   meta_title: string | null;
   meta_description: string | null;
   content: string;
+}
+
+export interface SeoPage {
+  id: string;
+  path: string;
+  label: string;
+}
+
+type Mode = "blog" | "page";
+
+interface SeoAuditable {
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  content: string;
+}
+
+interface ParsedMetrics {
+  h1Count: number;
+  h2Count: number;
+  headingText: string;
+  wordCount: number;
+  firstParagraph: string;
+  imgTotal: number;
+  imgWithAlt: number;
 }
 
 type Level = "pass" | "warn" | "fail";
@@ -60,12 +91,7 @@ function statusColor(status: Level): string {
   return "text-red-400 border-red-400/40";
 }
 
-export function scorePost(post: SeoPost, keyword: string): ScoreResult {
-  const metaTitle = post.meta_title?.trim() || post.title.trim();
-  const metaDescription = (post.meta_description || "").trim();
-  const kw = keyword.trim().toLowerCase();
-
-  // Parse content once.
+function parseContentHtml(html: string): ParsedMetrics {
   let h1Count = 0;
   let h2Count = 0;
   let imgTotal = 0;
@@ -75,7 +101,7 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
   let headingText = "";
 
   try {
-    const doc = new DOMParser().parseFromString(post.content, "text/html");
+    const doc = new DOMParser().parseFromString(html, "text/html");
     h1Count = doc.querySelectorAll("h1").length;
     h2Count = doc.querySelectorAll("h2").length;
     const imgs = doc.querySelectorAll("img");
@@ -92,6 +118,21 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
   } catch {
     // Content isn't valid HTML — grade as-is with zeroed parse metrics.
   }
+
+  return { h1Count, h2Count, headingText, wordCount, firstParagraph, imgTotal, imgWithAlt };
+}
+
+export function scoreSeo(
+  record: SeoAuditable,
+  keyword: string,
+  parsed?: ParsedMetrics
+): ScoreResult {
+  const metaTitle = record.meta_title?.trim() || record.title.trim();
+  const metaDescription = (record.meta_description || "").trim();
+  const kw = keyword.trim().toLowerCase();
+
+  const metrics = parsed ?? parseContentHtml(record.content);
+  const { h1Count, h2Count, headingText, wordCount, firstParagraph, imgTotal, imgWithAlt } = metrics;
 
   const includes = (source: string) => source.toLowerCase().includes(kw);
 
@@ -133,7 +174,7 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
         status: "fail",
         points: 0,
         outOf: 15,
-        detail: "Not set — search engines will fall back to the excerpt.",
+        detail: "Not set — search engines will fall back to body text.",
         suggestion: "Write a meta description between 120–160 characters.",
       });
     } else if (len < 120 || len > 160) {
@@ -171,9 +212,9 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
       detail: `${h1Count} H1, ${h2Count} H2.`,
       suggestion:
         h1Count !== 1
-          ? "Use exactly one H1 (the title) for the article."
+          ? "Use exactly one H1 for the page."
           : h2Count === 0
-          ? "Add H2 subheadings to break the article into scannable sections."
+          ? "Add H2 subheadings to break the page into scannable sections."
           : undefined,
     });
   }
@@ -229,13 +270,12 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
 
   // Image alt coverage (10)
   {
-    const altRatio =
-      imgTotal > 0 ? Math.round((imgWithAlt / imgTotal) * 100) : 100;
+    const altRatio = imgTotal > 0 ? Math.round((imgWithAlt / imgTotal) * 100) : 100;
     let status: Level = "pass";
     let points = 10;
     const detail =
       imgTotal === 0
-        ? "No images in content."
+        ? "No images on page."
         : `${imgWithAlt}/${imgTotal} images have alt text (${altRatio}%).`;
     if (imgTotal > 0 && imgWithAlt < imgTotal) {
       status = imgWithAlt === 0 ? "fail" : "warn";
@@ -257,7 +297,7 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
 
   // Excerpt (5)
   {
-    const hasExcerpt = Boolean((post.excerpt || "").trim());
+    const hasExcerpt = Boolean((record.excerpt || "").trim());
     checks.push({
       key: "excerpt",
       label: "Excerpt",
@@ -267,20 +307,20 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
       detail: hasExcerpt ? "Present." : "Missing.",
       suggestion: hasExcerpt
         ? undefined
-        : "Write a 1–2 sentence excerpt — used on cards and shared snippets.",
+        : "Add a 1–2 sentence summary — used on cards and shared snippets.",
     });
   }
 
   // Slug quality (5)
   {
-    const clean = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug) && post.slug.length <= 80;
+    const clean = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(record.slug) && record.slug.length <= 80;
     checks.push({
       key: "slug",
       label: "Slug",
       status: clean ? "pass" : "warn",
       points: clean ? 5 : 2,
       outOf: 5,
-      detail: `/${post.slug}`,
+      detail: `/${record.slug}`,
       suggestion: clean
         ? undefined
         : "Use a short lowercase slug with hyphens (≤80 chars).",
@@ -301,40 +341,139 @@ export function scorePost(post: SeoPost, keyword: string): ScoreResult {
   };
 }
 
-export function SeoScorer({ posts }: { posts: SeoPost[] }) {
-  const [selectedId, setSelectedId] = useState<string>(posts[0]?.id ?? "");
+export function SeoScorer({ posts, pages }: { posts: SeoPost[]; pages: SeoPage[] }) {
+  const [mode, setMode] = useState<Mode>(posts.length > 0 ? "blog" : "page");
+  const [selectedPostId, setSelectedPostId] = useState(posts[0]?.id ?? "");
+  const [selectedPageId, setSelectedPageId] = useState(pages[0]?.id ?? "");
   const [keywordOverride, setKeywordOverride] = useState<string | null>(null);
+  const [live, setLive] = useState<{
+    path: string;
+    record: SeoAuditable;
+    parsed: ParsedMetrics;
+  } | null>(null);
+  const [fetchError, setFetchError] = useState<{ path: string; message: string } | null>(null);
 
-  const selected = posts.find((p) => p.id === selectedId) ?? null;
-  const keyword =
-    keywordOverride ?? (selected ? deriveDefaultKeyword(selected.title) : "");
+  const selectedPost = posts.find((p) => p.id === selectedPostId) ?? null;
+  const selectedPage = pages.find((p) => p.id === selectedPageId) ?? null;
+
+  useEffect(() => {
+    if (mode !== "page" || !selectedPage) return;
+    const path = selectedPage.path;
+    let cancelled = false;
+    fetch(`/api/admin/seo/fetch-page?path=${encodeURIComponent(path)}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) throw new Error(data.error || "Failed to fetch page");
+        setLive({
+          path,
+          record: {
+            title: data.title,
+            slug: path.replace(/^\//, ""),
+            excerpt: data.bodyText ? data.bodyText.slice(0, 150) : null,
+            meta_title: data.title,
+            meta_description: data.metaDescription,
+            content: data.bodyText,
+          },
+          parsed: {
+            h1Count: data.h1Count,
+            h2Count: data.h2Count,
+            headingText: data.headingText,
+            wordCount: data.wordCount,
+            firstParagraph: data.firstParagraph,
+            imgTotal: data.imgTotal,
+            imgWithAlt: data.imgWithAlt,
+          },
+        });
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setFetchError({
+          path,
+          message: e instanceof Error ? e.message : "Failed to fetch page",
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, selectedPage]);
+
+  const blogRecord: SeoAuditable | null = selectedPost
+    ? {
+        title: selectedPost.title,
+        slug: selectedPost.slug,
+        excerpt: selectedPost.excerpt,
+        meta_title: selectedPost.meta_title,
+        meta_description: selectedPost.meta_description,
+        content: selectedPost.content,
+      }
+    : null;
+
+  const pageRecord = selectedPage && live?.path === selectedPage.path ? live.record : null;
+  const pageParsed = selectedPage && live?.path === selectedPage.path ? live.parsed : undefined;
+  const pageLoading =
+    mode === "page" &&
+    !!selectedPage &&
+    live?.path !== selectedPage.path &&
+    fetchError?.path !== selectedPage.path;
+  const pageError =
+    mode === "page" && fetchError && fetchError.path === selectedPage?.path
+      ? fetchError.message
+      : null;
+
+  const record = mode === "blog" ? blogRecord : pageRecord;
+  const currentTitle = record?.title ?? "";
+  const keyword = keywordOverride ?? deriveDefaultKeyword(currentTitle);
 
   const result = useMemo(
-    () => (selected ? scorePost(selected, keyword) : null),
-    [selected, keyword]
+    () => (record ? scoreSeo(record, keyword, pageParsed) : null),
+    [record, keyword, pageParsed]
   );
 
-  function handleSelect(id: string) {
-    setSelectedId(id);
+  function handleMode(next: Mode) {
+    setMode(next);
     setKeywordOverride(null);
   }
 
+  function handleSelect(id: string) {
+    if (mode === "blog") {
+      setSelectedPostId(id);
+    } else {
+      setSelectedPageId(id);
+    }
+    setKeywordOverride(null);
+  }
+
+  const currentLabel = mode === "blog" ? selectedPost?.title ?? "" : selectedPage?.label ?? "";
+
   return (
     <div className="flex flex-col gap-6">
+      {/* Mode toggle */}
+      <div className="flex gap-2" role="tablist" aria-label="SEO target type">
+        <ModeTab active={mode === "blog"} onClick={() => handleMode("blog")} label="Blog posts" />
+        <ModeTab active={mode === "page"} onClick={() => handleMode("page")} label="Public pages" />
+      </div>
+
       {/* Controls */}
       <div className="grid grid-cols-1 gap-4 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40 p-5 md:grid-cols-2">
         <label className="flex flex-col gap-1.5">
-          <span className="mg-eyebrow">Post</span>
+          <span className="mg-eyebrow">{mode === "blog" ? "Post" : "Page"}</span>
           <select
-            value={selectedId}
+            value={mode === "blog" ? selectedPostId : selectedPageId}
             onChange={(e) => handleSelect(e.target.value)}
             className="mg-input"
           >
-            {posts.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
+            {mode === "blog"
+              ? posts.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))
+              : pages.map((pg) => (
+                  <option key={pg.id} value={pg.id}>
+                    {pg.label}
+                  </option>
+                ))}
           </select>
         </label>
         <label className="flex flex-col gap-1.5">
@@ -349,10 +488,21 @@ export function SeoScorer({ posts }: { posts: SeoPost[] }) {
         </label>
       </div>
 
-      {!selected || !result ? (
+      {pageLoading ? (
+        <div className="flex min-h-[200px] items-center justify-center gap-2 rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
+          <Loader2 size={18} className="animate-spin text-signal" />
+          <p className="text-sm text-chrome-500">Fetching live page…</p>
+        </div>
+      ) : pageError ? (
+        <div className="flex min-h-[200px] items-center justify-center rounded-[var(--radius-mg-lg)] border border-red-500/30 bg-red-500/10">
+          <p className="text-sm text-red-400">{pageError}</p>
+        </div>
+      ) : !record || !result ? (
         <div className="flex min-h-[200px] items-center justify-center rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
           <p className="text-sm text-chrome-700">
-            Publish a blog post first to run the SEO scorer.
+            {mode === "blog"
+              ? "Publish a blog post first to run the SEO scorer."
+              : "Select a public page to score it."}
           </p>
         </div>
       ) : (
@@ -378,9 +528,7 @@ export function SeoScorer({ posts }: { posts: SeoPost[] }) {
               <span className="font-display text-2xl text-chrome-100">
                 Grade {result.grade}
               </span>
-              <span className="text-sm text-chrome-500">
-                {selected.meta_title || selected.title}
-              </span>
+              <span className="text-sm text-chrome-500">{currentLabel}</span>
               {result.suggestions.length > 0 && (
                 <span className="mt-1 text-xs text-amber-400">
                   {result.suggestions.length} improvement
@@ -439,5 +587,31 @@ export function SeoScorer({ posts }: { posts: SeoPost[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+function ModeTab({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`flex items-center gap-2 rounded-[var(--radius-mg)] border px-4 py-2.5 text-sm transition-colors ${
+        active
+          ? "border-signal/60 bg-graphite text-chrome-100"
+          : "border-hairline text-chrome-500 hover:border-chrome-700 hover:text-chrome-300"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

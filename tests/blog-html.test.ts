@@ -7,5 +7,5 @@ test('removes executable markup while preserving editor content', () => {
     '<h2>Safe heading</h2><img src="x" onerror="alert(1)"><script>alert(1)</script>',
   )
 
-  assert.equal(html, '<h2>Safe heading</h2><img src="x">')
+  assert.equal(html, '<h2>Safe heading</h2><img src="x" />')
 })

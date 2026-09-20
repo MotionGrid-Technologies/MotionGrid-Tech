@@ -6,8 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
+  Code2,
   Eye,
   EyeOff,
+  FileText,
   Loader2,
   Save,
   Trash2,
@@ -31,7 +33,7 @@ interface ComposerAuthor {
 }
 
 interface BlogComposerProps {
-  id: string;
+  id?: string;
   initial: {
     title: string;
     slug: string;
@@ -68,6 +70,8 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
   const editorRef = useRef<BlogEditorHandle>(null);
   const featuredFileRef = useRef<HTMLInputElement>(null);
 
+  const isNew = !id;
+
   const [title, setTitle] = useState(initial.title);
   const [slug, setSlug] = useState(initial.slug);
   const [slugEdited, setSlugEdited] = useState(false);
@@ -83,6 +87,8 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
   const [categoryIds, setCategoryIds] = useState<string[]>(initial.categoryIds);
 
   const [preview, setPreview] = useState(false);
+  const [sourceMode, setSourceMode] = useState(false);
+  const [visualVersion, setVisualVersion] = useState(0);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [uploadingFeatured, setUploadingFeatured] = useState(false);
@@ -122,6 +128,19 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
     setSaving(true);
     setFeedback(null);
     try {
+      if (isNew) {
+        const res = await fetch("/api/admin/blog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildPayload()),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Create failed");
+        router.push(`/dashboard/admin/marketing/blog/${data.post.id}`);
+        router.refresh();
+        return;
+      }
+
       const res = await fetch(`/api/admin/blog/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -172,6 +191,12 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
     }
   }
 
+  function enterVisual() {
+    if (!sourceMode) return;
+    setVisualVersion((v) => v + 1);
+    setSourceMode(false);
+  }
+
   return (
     <section className="py-12">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 md:px-8">
@@ -184,7 +209,9 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
           </Link>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="font-display text-3xl text-chrome-100">Edit post</h1>
+              <h1 className="font-display text-3xl text-chrome-100">
+                {isNew ? "New post" : "Edit post"}
+              </h1>
               <p className="text-sm text-chrome-500">Draft, schedule, and publish a blog article.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -196,15 +223,17 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
                 {preview ? <EyeOff size={15} /> : <Eye size={15} />}
                 {preview ? "Edit" : "Preview"}
               </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] border border-signal/30 px-3 py-2 text-sm text-signal hover:border-signal"
-              >
-                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
-                Delete
-              </button>
+              {!isNew && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] border border-signal/30 px-3 py-2 text-sm text-signal hover:border-signal"
+                >
+                  {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  Delete
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleSave}
@@ -212,7 +241,7 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
                 className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] bg-signal px-4 py-2 text-sm font-semibold text-black hover:bg-signal/90"
               >
                 {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-                Save
+                {isNew ? "Create" : "Save"}
               </button>
             </div>
           </div>
@@ -423,8 +452,53 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
 
             {/* Content editor */}
             <div className="flex flex-col gap-2">
-              <span className="mg-eyebrow">Content</span>
-              <BlogEditor ref={editorRef} initialHtml={content} onChange={setContent} />
+              <div className="flex items-center justify-between">
+                <span className="mg-eyebrow">Content</span>
+                <div className="flex gap-1 rounded-[var(--radius-mg)] border border-hairline p-0.5">
+                  <button
+                    type="button"
+                    onClick={enterVisual}
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] px-3 py-1.5 text-xs transition-colors " +
+                      (!sourceMode
+                        ? "bg-signal/15 text-signal"
+                        : "text-chrome-500 hover:text-chrome-100")
+                    }
+                  >
+                    <FileText size={13} /> Visual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSourceMode(true)}
+                    className={
+                      "inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] px-3 py-1.5 text-xs transition-colors " +
+                      (sourceMode
+                        ? "bg-signal/15 text-signal"
+                        : "text-chrome-500 hover:text-chrome-100")
+                    }
+                  >
+                    <Code2 size={13} /> Source
+                  </button>
+                </div>
+              </div>
+
+              {sourceMode ? (
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={18}
+                  spellCheck={false}
+                  placeholder="Paste or write raw HTML here — it's sanitized on save."
+                  className="w-full rounded-[var(--radius-mg)] border border-hairline bg-graphite/40 px-4 py-3 font-mono text-sm text-chrome-100 placeholder:text-chrome-700 focus:border-signal/60"
+                />
+              ) : (
+                <BlogEditor
+                  key={`visual-${visualVersion}`}
+                  ref={editorRef}
+                  initialHtml={content}
+                  onChange={setContent}
+                />
+              )}
             </div>
           </>
         )}
