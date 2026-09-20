@@ -1,15 +1,16 @@
 "use client";
 
-import posthog from "posthog-js";
 import { signOut } from "@/app/login/actions";
-import { isPostHogConfigured } from "@/lib/posthog";
+import { getPostHogIfConsented } from "@/lib/posthog-client";
 
 export function SignOutButton() {
   return (
     <form
       action={signOut}
       onSubmit={() => {
-        if (isPostHogConfigured) posthog.reset();
+        getPostHogIfConsented().then((posthog) => {
+          if (posthog) posthog.reset();
+        });
       }}
     >
       <button

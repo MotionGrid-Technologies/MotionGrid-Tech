@@ -8,6 +8,8 @@ import {
   BarChart3,
   Mail,
   Newspaper,
+  TrendingUp,
+  MessageSquareQuote,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -15,10 +17,12 @@ import { signOut } from "@/app/login/actions";
 
 const items = [
   { label: "Dashboard", href: "/dashboard/admin/dashboard", icon: LayoutDashboard },
+  { label: "Analytics", href: "/dashboard/admin/analytics", icon: TrendingUp },
   { label: "SEO", href: "/dashboard/admin/seo", icon: Search },
   { label: "Stats & Reports", href: "/dashboard/admin/stats", icon: BarChart3 },
   { label: "Blog", href: "/dashboard/admin/marketing/blog", icon: Newspaper },
   { label: "Marketing Emails", href: "/dashboard/admin/marketing/emails", icon: Mail },
+  { label: "Reviews", href: "/dashboard/admin/marketing/reviews", icon: MessageSquareQuote },
 ];
 
 export function AdminSidebar() {

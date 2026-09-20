@@ -30,6 +30,7 @@ export const footerColumns = [
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
       { label: "Book a Demo", href: "/contact#demo" },
+      { label: "FAQ", href: "/faq" },
     ],
   },
   {

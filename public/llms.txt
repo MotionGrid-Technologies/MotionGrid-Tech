@@ -1,0 +1,29 @@
+# MotionGrid Technologies
+
+> MotionGrid Technologies is a South African bespoke software agency. We design, build, and maintain custom software platforms — from client portals and field-service tools to applied AI features — engineered for precision, performance, and longevity.
+
+## Company
+
+MotionGrid Technologies Pty(ltd) builds bespoke software for businesses across plumbing, fleet maintenance, panel beating, logistics, healthcare, retail, and applied AI. Founded and run by two engineers (Prince Ncube, Engineering Lead; Mnqobi Ntuli, Product Lead), we take products from first conversation to deployment. We work with a modern stack: Next.js, TypeScript, Supabase, PostgreSQL, and React, with AI features layered where they add real value.
+
+## Useful links
+
+- [About](/about)
+- [Products](/products)
+- [Technology](/technology)
+- [Industries](/industries)
+- [Blog](/blog)
+- [Testimonials](/testimonials)
+- [Contact](/contact)
+
+## Key pages
+
+- [Book a demo](/contact#demo)
+- [Privacy Policy](/legal/privacy)
+- [Terms of Service](/legal/terms)
+- [Cookie Policy](/legal/cookies)
+
+## Contact
+
+- Email: hi@motiongrid.co.za
+- Website: https://motiongrid.co.za

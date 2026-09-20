@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/types/database'
 import { renderTemplate, getDefaultTemplate, DEFAULT_TEMPLATES } from '@/lib/email-templates'
+import { bookingInviteBase64 } from '@/lib/ics'
 
 // ---------------------------------------------------------------------------
 // MotionGrid marketing/lead email sender.
@@ -74,6 +75,7 @@ export interface SendMarketingEmailParams {
   text?: string
   templateKey: string
   variables?: Record<string, string>
+  attachments?: { filename: string; contentBase64: string }[]
 }
 
 export async function sendMarketingEmail(
@@ -99,8 +101,15 @@ export async function sendMarketingEmail(
       html: string
       text?: string
       reply_to: string
+      attachments?: { filename: string; content: string }[]
     } = { from, to: params.to, subject, html, reply_to: DEFAULT_REPLY_TO }
     if (text) emailConfig.text = text
+    if (params.attachments && params.attachments.length > 0) {
+      emailConfig.attachments = params.attachments.map((a) => ({
+        filename: a.filename,
+        content: a.contentBase64,
+      }))
+    }
 
     const { data, error } = await getResend().emails.send(emailConfig)
 
@@ -192,5 +201,112 @@ export async function sendDemoConfirmationEmail(data: { name: string; email: str
       name: data.name,
       businessName: process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
     },
+  })
+}
+
+// ── Booking flow (Phase 3.3) ───────────────────────────────────────────
+
+export interface BookingEmailData {
+  name: string
+  company: string
+  email: string
+  phone: string
+  message: string
+  slotStart: Date
+  durationMinutes: number
+  bookingId: string
+}
+
+function formatSlotSast(start: Date): string {
+  return new Intl.DateTimeFormat('en-ZA', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'Africa/Johannesburg',
+  }).format(start)
+}
+
+export async function sendBookingConfirmationEmail(data: BookingEmailData) {
+  const def = getDefaultTemplate('booking_confirmation', DEFAULT_TEMPLATES)
+  if (!def) {
+    console.error('[marketing-email] Missing template: booking_confirmation')
+    return { success: false, error: 'Template not found' }
+  }
+
+  const businessName = process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME
+  const organizerEmail = process.env.ADMIN_NOTIFICATION_EMAIL || DEFAULT_ADMIN_EMAIL
+
+  return sendMarketingEmail({
+    to: data.email,
+    subject: def.subject,
+    html: def.html,
+    text: def.text,
+    templateKey: 'booking_confirmation',
+    variables: {
+      name: data.name,
+      businessName,
+      slot: formatSlotSast(data.slotStart),
+      duration: String(data.durationMinutes),
+    },
+    attachments: [
+      {
+        filename: 'motiongrid-demo.ics',
+        contentBase64: bookingInviteBase64({
+          uid: `${data.bookingId}@motiongrid.co.za`,
+          start: data.slotStart,
+          durationMinutes: data.durationMinutes,
+          summary: `${businessName} demo call`,
+          description: `Your ${data.durationMinutes}-minute demo call with ${businessName}. A calendar invite is attached.`,
+          organizerName: businessName,
+          organizerEmail,
+          attendeeName: data.name,
+          attendeeEmail: data.email,
+        }),
+      },
+    ],
+  })
+}
+
+export async function sendBookingAdminNotification(data: BookingEmailData) {
+  const def = getDefaultTemplate('booking_notification_admin', DEFAULT_TEMPLATES)
+  if (!def) {
+    console.error('[marketing-email] Missing template: booking_notification_admin')
+    return { success: false, error: 'Template not found' }
+  }
+
+  return sendMarketingEmail({
+    to: process.env.ADMIN_NOTIFICATION_EMAIL || DEFAULT_ADMIN_EMAIL,
+    subject: def.subject,
+    html: def.html,
+    text: def.text,
+    templateKey: 'booking_notification_admin',
+    variables: {
+      name: data.name,
+      company: data.company || 'N/A',
+      email: data.email,
+      phone: data.phone || 'N/A',
+      message: data.message || '',
+      slot: formatSlotSast(data.slotStart),
+      duration: String(data.durationMinutes),
+      businessName: process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
+    },
+    attachments: [
+      {
+        filename: 'motiongrid-demo.ics',
+        contentBase64: bookingInviteBase64({
+          uid: `${data.bookingId}@motiongrid.co.za`,
+          start: data.slotStart,
+          durationMinutes: data.durationMinutes,
+          summary: `${process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME} demo call`,
+          description: `Booked demo call with ${data.name}${data.company ? ` (${data.company})` : ''}.`,
+          organizerName: process.env.EMAIL_DISPLAY_NAME || DEFAULT_DISPLAY_NAME,
+          organizerEmail: process.env.ADMIN_NOTIFICATION_EMAIL || DEFAULT_ADMIN_EMAIL,
+          attendeeName: data.name,
+          attendeeEmail: data.email,
+        }),
+      },
+    ],
   })
 }

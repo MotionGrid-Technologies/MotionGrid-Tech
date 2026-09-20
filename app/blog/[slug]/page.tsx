@@ -32,7 +32,7 @@ export async function generateMetadata({
   const metaDescription = post.meta_description || post.excerpt || "";
 
   return {
-    title: post.meta_title ? `${post.title}` : post.title,
+    title: post.meta_title || post.title,
     description: metaDescription,
     alternates: { canonical: url },
     openGraph: {
@@ -44,7 +44,7 @@ export async function generateMetadata({
       publishedTime: post.published_at ?? undefined,
       images: post.featured_image_url
         ? [{ url: post.featured_image_url }]
-        : [{ url: `${site.url}/og-image.png` }],
+        : [{ url: `${site.url}/opengraph-image` }],
     },
     twitter: {
       card: "summary_large_image",
@@ -52,7 +52,7 @@ export async function generateMetadata({
       description: metaDescription,
       images: post.featured_image_url
         ? [post.featured_image_url]
-        : [`${site.url}/og-image.png`],
+        : [`${site.url}/opengraph-image`],
     },
   };
 }
@@ -95,7 +95,7 @@ export default async function BlogPostPage({
     url: postUrl,
     datePublished: post.published_at ?? undefined,
     dateModified: post.updated_at,
-    image: post.featured_image_url || `${site.url}/og-image.png`,
+    image: post.featured_image_url || `${site.url}/opengraph-image`,
     author: {
       "@type": "Person",
       name: authorName,
@@ -165,7 +165,7 @@ export default async function BlogPostPage({
                 src={post.featured_image_url}
                 alt={post.featured_image_alt || post.title}
                 fill
-                unoptimized
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover"
               />
             </div>

@@ -49,7 +49,6 @@ export const metadata: Metadata = {
     description: site.description,
     url: site.url,
     siteName: site.name,
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     locale: "en_ZA",
     type: "website",
   },
@@ -57,7 +56,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${site.name} — Precision-built software`,
     description: site.description,
-    images: ["/og-image.png"],
   },
   icons: {
     icon: "/brand/logo-icon.svg",
@@ -84,7 +82,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     operatingSystem: "Any",
     url: site.url,
     description: site.description,
-    image: `${site.url}/og-image.png`,
     provider: {
       "@type": "Organization",
       name: site.name,
@@ -95,11 +92,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--radius-mg)] focus:bg-signal focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-obsidian"
+        >
+          Skip to main content
+        </a>
         <JsonLd data={softwareApplicationSchema} />
         <PostHogProvider />
         <CookieBanner />
         <NavbarContainer />
-        <main className="flex-1">{children}</main>
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
         <Footer />
       </body>
     </html>
