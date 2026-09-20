@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { guardAdminRequest } from "@/lib/api-auth";
 import { fetchPageSeo } from "@/lib/seo-fetcher";
+import { isSameOriginPath, mapInBatches } from "@/lib/seo-fetch-paths";
+
+const TRUSTED_ORIGIN = "https://motiongrid.co.za";
+const FETCH_CONCURRENCY = 5;
 
 // Bulk fetch live SEO data for multiple public routes in parallel.
 // Used by the admin SEO table's "Refresh all" action.
@@ -20,22 +24,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "paths must be an array of strings" }, { status: 400 });
   }
 
-  if (paths.some((p) => !p.startsWith("/") || p.startsWith("//"))) {
+  if (paths.some((path) => !isSameOriginPath(path, TRUSTED_ORIGIN))) {
     return NextResponse.json({ error: "Invalid path in paths" }, { status: 400 });
   }
 
   try {
-    const origin = new URL(request.url).origin;
-    const results = await Promise.all(
-      paths.map(async (path) => {
+    const uniquePaths = [...new Set(paths)];
+    const results = await mapInBatches(
+      uniquePaths,
+      FETCH_CONCURRENCY,
+      async (path) => {
         try {
-          const data = await fetchPageSeo(path, origin);
+          const data = await fetchPageSeo(path, TRUSTED_ORIGIN);
           return { path, data };
         } catch (error) {
           const message = error instanceof Error ? error.message : "Failed to fetch page";
           return { path, error: message };
         }
-      })
+      }
     );
     return NextResponse.json({ results });
   } catch (error) {
