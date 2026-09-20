@@ -13,6 +13,7 @@ import { technologies } from "@/lib/technologies";
 import { industries, site } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/page-metadata";
 
+/** Builds the homepage metadata from its defaults and any saved SEO override. */
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await buildPageMetadata("/", {
     title: `${site.name} — Precision-built software`,
@@ -27,6 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/** Renders the public marketing homepage and its organization schema. */
 export default function Home() {
   return (
     <>

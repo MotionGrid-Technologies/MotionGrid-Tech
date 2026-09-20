@@ -6,8 +6,7 @@ import { isSameOriginPath, mapInBatches } from "@/lib/seo-fetch-paths";
 const TRUSTED_ORIGIN = "https://motiongrid.co.za";
 const FETCH_CONCURRENCY = 5;
 
-// Bulk fetch live SEO data for multiple public routes in parallel.
-// Used by the admin SEO table's "Refresh all" action.
+/** Bulk-fetches live SEO data for the admin table's requested public routes. */
 export async function POST(request: Request) {
   const guardResponse = await guardAdminRequest(request);
   if (guardResponse) return guardResponse;

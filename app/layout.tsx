@@ -72,6 +72,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** Provides the shared document shell for every application route. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}>

@@ -15,6 +15,7 @@ interface PageSeoModalProps {
   onSaved: (override: PageSeoOverride) => void;
 }
 
+/** Renders the SEO override editor with live defaults, validation, and suggestions. */
 export function PageSeoModal({ page, override, liveData, onClose, onSaved }: PageSeoModalProps) {
   // Pre-fill with the override if one exists, otherwise fall back to the live
   // values currently being served so the form is never blank.
@@ -76,6 +77,7 @@ export function PageSeoModal({ page, override, liveData, onClose, onSaved }: Pag
     return scoreSeo(record, keyword, parsed).suggestions;
   }, [metaTitle, metaDescription, liveData, page.path]);
 
+  /** Persists the current SEO fields and reports the saved override upstream. */
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -101,6 +103,7 @@ export function PageSeoModal({ page, override, liveData, onClose, onSaved }: Pag
     }
   }
 
+  /** Restores the form fields to the metadata currently served by the page. */
   function resetToLive() {
     setMetaTitle(liveData?.title ?? "");
     setMetaDescription(liveData?.metaDescription ?? "");
@@ -299,6 +302,7 @@ export function PageSeoModal({ page, override, liveData, onClose, onSaved }: Pag
   );
 }
 
+/** Groups a label with its SEO form control. */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">

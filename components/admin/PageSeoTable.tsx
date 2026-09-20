@@ -21,12 +21,14 @@ interface PageSeoTableProps {
 type ScoreEntry = { result: ScoreResult; keyword: string };
 type LiveEntry = { data?: PageSeoData; error?: string };
 
+/** Maps an SEO score to its table text color. */
 function scoreColor(total: number): string {
   if (total >= 85) return "text-emerald-400";
   if (total >= 55) return "text-amber-400";
   return "text-red-400";
 }
 
+/** Displays public-page SEO data and controls scoring, refresh, and editing flows. */
 export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTableProps) {
   const [overrides, setOverrides] = useState<PageSeoOverride[]>(initialOverrides);
   const [scores, setScores] = useState<Record<string, ScoreEntry>>({});
@@ -41,10 +43,12 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
     override: PageSeoOverride | null;
   } | null>(null);
 
+  /** Returns the saved override for a route, when one exists. */
   function overrideFor(path: string): PageSeoOverride | null {
     return overrides.find((o) => o.path === path) ?? null;
   }
 
+  /** Scores live page metadata and content using a title-derived keyword. */
   function scoreFromLive(path: string, data: PageSeoData) {
     const record = {
       title: data.title,
@@ -67,6 +71,7 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
     return { result: scoreSeo(record, keyword, parsed), keyword };
   }
 
+  /** Fetches and scores one public route. */
   async function handleScore(path: string) {
     setScoringPath(path);
     setScoreError(null);
@@ -84,6 +89,7 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
     }
   }
 
+  /** Refreshes live metadata and scores for every route in the table. */
   async function handleRefreshAll() {
     setRefreshing(true);
     setRefreshError(null);
@@ -113,6 +119,7 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
     }
   }
 
+  /** Replaces the locally cached override after an editor save. */
   function handleSaved(override: PageSeoOverride) {
     setOverrides((prev) => {
       const existing = prev.findIndex((o) => o.path === override.path);

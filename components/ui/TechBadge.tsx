@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 
+/** Renders a technology logo with its name and category. */
 export function TechBadge({
   logo,
   name,
