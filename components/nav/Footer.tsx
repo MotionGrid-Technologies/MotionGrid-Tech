@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { CookieSettingsButton } from "@/components/analytics/CookieSettingsButton";
 import { footerColumns, site } from "@/lib/site";
 
+/** Renders site navigation, legal links, and cookie settings in the footer. */
 export function Footer() {
   return (
     <footer className="border-t border-hairline bg-obsidian-soft">

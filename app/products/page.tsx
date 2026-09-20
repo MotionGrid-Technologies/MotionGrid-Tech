@@ -30,6 +30,7 @@ const products: {
   },
 ];
 
+/** Renders the product catalogue and product detail summaries. */
 export default function ProductsPage() {
   return (
     <>

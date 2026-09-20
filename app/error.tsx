@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { getPostHogIfConsented } from "@/lib/posthog-client";
 
+/** Reports a route error and renders recovery controls. */
 export default function Error({
   error,
   reset,

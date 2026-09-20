@@ -3,6 +3,7 @@
 import { signOut } from "@/app/login/actions";
 import { getPostHogIfConsented } from "@/lib/posthog-client";
 
+/** Renders a sign-out form that clears analytics state before ending the session. */
 export function SignOutButton() {
   return (
     <form

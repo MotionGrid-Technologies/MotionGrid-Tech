@@ -10,6 +10,7 @@ import {
   type ReviewStatus,
 } from "@/lib/reviews-store";
 
+/** Checks whether the current session may moderate reviews. */
 async function requireDashboardAccess(): Promise<boolean> {
   const supabase = await createSiteSupabaseServerClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -18,6 +19,7 @@ async function requireDashboardAccess(): Promise<boolean> {
   return role === "admin" || role === "super_admin";
 }
 
+/** Validates review fields before they are persisted. */
 function validateReviewInput(input: {
   name: string;
   quote: string;
@@ -31,6 +33,7 @@ function validateReviewInput(input: {
   return null;
 }
 
+/** Creates a review from an authorized dashboard submission. */
 export async function addReview(formData: FormData): Promise<void> {
   if (!(await requireDashboardAccess())) redirect("/login");
 
@@ -47,12 +50,14 @@ export async function addReview(formData: FormData): Promise<void> {
   revalidatePath("/dashboard/admin/marketing/reviews");
 }
 
+/** Changes a review's moderation status. */
 export async function setReviewStatus(id: string, status: ReviewStatus): Promise<void> {
   if (!(await requireDashboardAccess())) redirect("/login");
   await updateReviewStatus(id, status);
   revalidatePath("/dashboard/admin/marketing/reviews");
 }
 
+/** Permanently removes a review from the moderation dashboard. */
 export async function removeReview(id: string): Promise<void> {
   if (!(await requireDashboardAccess())) redirect("/login");
   await deleteReview(id);

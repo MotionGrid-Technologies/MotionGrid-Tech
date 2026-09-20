@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: "Terms governing use of MotionGrid Technologies' website and products.",
 };
 
+/** Renders MotionGrid's website terms of use. */
 export default function TermsPage() {
   return (
     <LegalDoc

@@ -134,6 +134,7 @@ function SlotForm() {
   );
 }
 
+/** Renders the interactive demo-slot form for the current action state. */
 function SlotFormBody({
   state,
   formAction,
@@ -242,6 +243,7 @@ function MessageForm() {
   );
 }
 
+/** Renders the message-only contact form for the current action state. */
 function MessageFormBody({
   state,
   formAction,

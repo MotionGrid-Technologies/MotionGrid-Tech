@@ -10,6 +10,7 @@ import { Testimonials } from "@/components/sections/Testimonials";
 import { technologies } from "@/lib/technologies";
 import { industries } from "@/lib/site";
 
+/** Renders the public marketing homepage. */
 export default function Home() {
   return (
     <>

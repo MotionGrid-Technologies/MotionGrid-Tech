@@ -18,6 +18,7 @@ import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
+/** Builds social and search metadata for a published blog post. */
 export async function generateMetadata({
   params,
 }: {
@@ -57,6 +58,7 @@ export async function generateMetadata({
   };
 }
 
+/** Renders a published blog post and records its view on a best-effort basis. */
 export default async function BlogPostPage({
   params,
 }: {

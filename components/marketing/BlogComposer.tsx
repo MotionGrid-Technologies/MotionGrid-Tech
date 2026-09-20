@@ -62,6 +62,7 @@ function toDateTimeLocal(iso: string | null): string {
   )}:${pad(d.getMinutes())}`;
 }
 
+/** Provides the create and edit workflow for a blog post. */
 export function BlogComposer({ id, initial, categories, authors }: BlogComposerProps) {
   const router = useRouter();
   const editorRef = useRef<BlogEditorHandle>(null);

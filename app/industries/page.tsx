@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "Industries MotionGrid Technologies builds for: plumbing, fleet maintenance, panel beating, and applied AI — with more coming soon.",
 };
 
+/** Renders active and upcoming industry offerings. */
 export default function IndustriesPage() {
   const active = industries.filter((i) => i.status === "active");
   const soon = industries.filter((i) => i.status === "soon");

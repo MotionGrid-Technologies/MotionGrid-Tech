@@ -41,6 +41,7 @@ function PostHogPageView() {
   return null;
 }
 
+/** Synchronizes stored consent with PostHog and mounts page-view tracking. */
 export function PostHogProvider() {
   useEffect(() => {
     if (!isPostHogConfigured) return;

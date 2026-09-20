@@ -121,6 +121,7 @@ const FALLBACK_STATE = {
   alignRight: false,
 };
 
+/** Renders formatting and media controls for the blog editor. */
 function Toolbar({ editor }: { editor: Editor | null }) {
   const [uploading, setUploading] = useState(false);
 

@@ -73,6 +73,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** Provides the global document shell, navigation, analytics, and structured data. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const softwareApplicationSchema = {
     "@context": "https://schema.org",

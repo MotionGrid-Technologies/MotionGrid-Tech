@@ -25,6 +25,7 @@ const faqPageSchema = {
   })),
 };
 
+/** Renders the FAQ page together with its structured data. */
 export default function FaqPage() {
   return (
     <>

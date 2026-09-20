@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     "MotionGrid Technologies is built by two engineers who care about precision, longevity, and software that actually holds up in the field.",
 };
 
+/** Renders the company story, principles, and founder profiles. */
 export default function AboutPage() {
   return (
     <>

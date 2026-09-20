@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: "How MotionGrid Technologies collects, uses, and protects personal data.",
 };
 
+/** Renders MotionGrid's privacy policy. */
 export default function PrivacyPolicyPage() {
   return (
     <LegalDoc

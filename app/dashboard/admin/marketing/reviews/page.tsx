@@ -18,6 +18,7 @@ const STATUS_TONE: Record<ReviewStatus, string> = {
   rejected: "text-chrome-700 border-hairline",
 };
 
+/** Renders the review moderation dashboard with status filtering. */
 export default async function ReviewsPage({
   searchParams,
 }: {
@@ -161,6 +162,7 @@ export default async function ReviewsPage({
   );
 }
 
+/** Renders moderation controls and details for a single review. */
 function ReviewRow({ review: r }: { review: Review }) {
   return (
     <article className="flex flex-col gap-4 p-6 md:flex-row md:items-start md:justify-between">

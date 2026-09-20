@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { faqs } from "@/lib/faqs";
 
+/** Renders the FAQ collection as an accessible single-open accordion. */
 export function FaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
