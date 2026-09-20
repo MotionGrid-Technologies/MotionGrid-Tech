@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { site } from "@/lib/site";
 import { getPageSeo } from "@/lib/page-seo-store";
 
-// Builds a page's Metadata by merging any admin-managed SEO override stored in
-// page_seo over a hardcoded base. Used by every public page's generateMetadata
-// so admins can edit titles/descriptions/keywords without touching code.
-
+/** Merges a page's defaults with its admin-managed SEO override. */
 export async function buildPageMetadata(
   path: string,
-  base: { title: string; description: string; keywords?: string[] }
+  base: {
+    title: string;
+    description: string;
+    keywords?: string[];
+    openGraph?: Partial<Metadata["openGraph"]>;
+  }
 ): Promise<Metadata> {
   let override: Awaited<ReturnType<typeof getPageSeo>> = null;
   try {
@@ -30,13 +33,23 @@ export async function buildPageMetadata(
       : []),
   ];
 
+  const canonicalUrl = path === "/" ? site.url : `${site.url}${path}`;
+
   return {
     title,
     description,
     keywords: keywords.length > 0 ? keywords : undefined,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
+      locale: "en_ZA",
+      type: "website",
+      siteName: site.name,
+      url: canonicalUrl,
       title,
       description,
+      ...(base.openGraph ?? {}),
     },
     twitter: {
       title,

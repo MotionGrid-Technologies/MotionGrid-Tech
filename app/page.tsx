@@ -8,10 +8,12 @@ import { TechBadge } from "@/components/ui/TechBadge";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Testimonials } from "@/components/sections/Testimonials";
+import { JsonLd } from "@/components/JsonLd";
 import { technologies } from "@/lib/technologies";
 import { industries, site } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/page-metadata";
 
+/** Builds the homepage metadata from its defaults and any saved SEO override. */
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await buildPageMetadata("/", {
     title: `${site.name} — Precision-built software`,
@@ -26,16 +28,35 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/** Renders the public marketing homepage. */
+/** Renders the public marketing homepage and its organization schema. */
 export default function Home() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: site.name,
+          url: site.url,
+          description: site.description,
+          knowsAbout: [
+            "Bespoke software development",
+            "Custom software platforms",
+            "AI development",
+            "Field service software",
+            "Next.js development",
+            "Software engineering",
+            "Workflow automation",
+          ],
+        }}
+      />
+
       <Hero
         eyebrow="Precision software, engineered in-house"
         title={
           <>
-            <span className="mg-chrome-text not-italic">Developing </span>{" "}
-            software moves businesses forward.
+            <span className="mg-chrome-text not-italic">Custom software engineering</span>{" "}
+            for operational businesses.
           </>
         }
         description="MotionGrid Technologies designs custom software platforms that simplify operations and eliminate repetitive work. We build tailor-made platforms that automate workflows, connect teams, and scale with your company"

@@ -1,22 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Loader2, Save, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Info, Loader2, RotateCcw, Save, Search, X } from "lucide-react";
 import { site } from "@/lib/site";
 import type { PageSeoOverride } from "@/lib/page-seo-store";
+import type { PageSeoData } from "@/lib/seo-fetcher";
+import { deriveDefaultKeyword, scoreSeo } from "@/lib/seo-scorer";
 
 interface PageSeoModalProps {
   page: { path: string; label: string };
   override: PageSeoOverride | null;
+  liveData: PageSeoData | null;
   onClose: () => void;
   onSaved: (override: PageSeoOverride) => void;
 }
 
-export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalProps) {
-  // The modal is mounted only while editing, so initializing from props is safe.
-  const [metaTitle, setMetaTitle] = useState(override?.meta_title ?? "");
-  const [metaDescription, setMetaDescription] = useState(override?.meta_description ?? "");
-  const [metaKeywords, setMetaKeywords] = useState(override?.meta_keywords ?? "");
+/** Renders the SEO override editor with live defaults, validation, and suggestions. */
+export function PageSeoModal({ page, override, liveData, onClose, onSaved }: PageSeoModalProps) {
+  // Pre-fill with the override if one exists, otherwise fall back to the live
+  // values currently being served so the form is never blank.
+  const defaultTitle = override?.meta_title ?? liveData?.title ?? "";
+  const defaultDescription = override?.meta_description ?? liveData?.metaDescription ?? "";
+  const defaultKeywords = override?.meta_keywords ?? "";
+
+  const [metaTitle, setMetaTitle] = useState(defaultTitle);
+  const [metaDescription, setMetaDescription] = useState(defaultDescription);
+  const [metaKeywords, setMetaKeywords] = useState(defaultKeywords);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +40,44 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
     };
   }, []);
 
+  const titleValidation = useMemo(() => {
+    const len = metaTitle.length;
+    if (len < 50) return { text: "Title is too short — aim for 50–60 characters.", status: "warn" as const };
+    if (len > 60) return { text: "Title is too long — may be truncated in search results.", status: "warn" as const };
+    return { text: "Good length.", status: "pass" as const };
+  }, [metaTitle]);
+
+  const descriptionValidation = useMemo(() => {
+    const len = metaDescription.length;
+    if (len < 120) return { text: "Description is too short — aim for 120–160 characters.", status: "warn" as const };
+    if (len > 160) return { text: "Description is too long — may be truncated.", status: "warn" as const };
+    return { text: "Good length.", status: "pass" as const };
+  }, [metaDescription]);
+
+  const dynamicSuggestions = useMemo(() => {
+    if (!liveData) return [];
+    const keyword = deriveDefaultKeyword(metaTitle || liveData.title);
+    const record = {
+      title: liveData.title,
+      slug: page.path.replace(/^\//, ""),
+      excerpt: liveData.bodyText ? liveData.bodyText.slice(0, 150) : null,
+      meta_title: metaTitle,
+      meta_description: metaDescription,
+      content: liveData.bodyText,
+    };
+    const parsed = {
+      h1Count: liveData.h1Count,
+      h2Count: liveData.h2Count,
+      headingText: liveData.headingText,
+      wordCount: liveData.wordCount,
+      firstParagraph: liveData.firstParagraph,
+      imgTotal: liveData.imgTotal,
+      imgWithAlt: liveData.imgWithAlt,
+    };
+    return scoreSeo(record, keyword, parsed).suggestions;
+  }, [metaTitle, metaDescription, liveData, page.path]);
+
+  /** Persists the current SEO fields and reports the saved override upstream. */
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -56,6 +103,15 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
     }
   }
 
+  /** Restores the form fields to the metadata currently served by the page. */
+  function resetToLive() {
+    setMetaTitle(liveData?.title ?? "");
+    setMetaDescription(liveData?.metaDescription ?? "");
+    setMetaKeywords("");
+  }
+
+  const snippetUrl = `${site.url.replace(/^https?:\/\//, "")}${page.path}`;
+
   return (
     <dialog
       ref={dialogRef}
@@ -67,7 +123,7 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
       }}
     >
       <div
-        className="w-full rounded-[var(--radius-mg-lg)] border border-hairline bg-obsidian-soft p-6 shadow-2xl"
+        className="max-h-[90vh] w-full overflow-y-auto rounded-[var(--radius-mg-lg)] border border-hairline bg-obsidian-soft p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
@@ -97,18 +153,28 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
               maxLength={70}
               className="mg-input"
             />
-            <span
-              className={
-                "mt-1 block text-right font-mono text-xs " +
-                (metaTitle.length > 60
-                  ? "text-amber-400"
-                  : metaTitle.length === 0
-                  ? "text-chrome-700"
-                  : "text-chrome-500")
-              }
-            >
-              {metaTitle.length}/70
-            </span>
+            <div className="mt-1 flex items-center justify-between">
+              <span
+                className={
+                  "text-xs " +
+                  (titleValidation.status === "pass" ? "text-emerald-400" : "text-amber-400")
+                }
+              >
+                {titleValidation.text}
+              </span>
+              <span
+                className={
+                  "font-mono text-xs " +
+                  (metaTitle.length > 60
+                    ? "text-amber-400"
+                    : metaTitle.length === 0
+                    ? "text-chrome-700"
+                    : "text-chrome-500")
+                }
+              >
+                {metaTitle.length}/70
+              </span>
+            </div>
           </Field>
 
           <Field label="Meta description">
@@ -120,18 +186,28 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
               maxLength={200}
               className="mg-input resize-y"
             />
-            <span
-              className={
-                "mt-1 block text-right font-mono text-xs " +
-                (metaDescription.length > 160
-                  ? "text-amber-400"
-                  : metaDescription.length === 0
-                  ? "text-chrome-700"
-                  : "text-chrome-500")
-              }
-            >
-              {metaDescription.length}/200
-            </span>
+            <div className="mt-1 flex items-center justify-between">
+              <span
+                className={
+                  "text-xs " +
+                  (descriptionValidation.status === "pass" ? "text-emerald-400" : "text-amber-400")
+                }
+              >
+                {descriptionValidation.text}
+              </span>
+              <span
+                className={
+                  "font-mono text-xs " +
+                  (metaDescription.length > 160
+                    ? "text-amber-400"
+                    : metaDescription.length === 0
+                    ? "text-chrome-700"
+                    : "text-chrome-500")
+                }
+              >
+                {metaDescription.length}/200
+              </span>
+            </div>
           </Field>
 
           <Field label="Keywords (comma-separated)">
@@ -146,7 +222,7 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
 
           {/* Google snippet preview */}
           <div className="flex flex-col gap-1 rounded-[var(--radius-mg)] border border-hairline bg-white p-4">
-            <span className="text-xs text-emerald-700">{site.url.replace(/^https?:\/\//, "")}{page.path}</span>
+            <span className="text-xs text-emerald-700">{snippetUrl}</span>
             <span className="truncate text-lg text-[#1a0dab]">
               {metaTitle.trim() || "Page title will appear here"}
             </span>
@@ -155,25 +231,70 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
             </span>
           </div>
 
+          {/* Tips */}
+          <div className="flex flex-col gap-3 rounded-[var(--radius-mg)] border border-hairline bg-graphite/40 p-5">
+            <span className="mg-eyebrow flex items-center gap-1.5">
+              <Info size={13} /> Tips
+            </span>
+            <ul className="flex flex-col gap-2">
+              {[
+                "Include your target keyword near the start of the title.",
+                "Write a unique description that summarizes the page content.",
+                "Avoid keyword stuffing in the keywords field.",
+              ].map((tip) => (
+                <li key={tip} className="flex items-start gap-2 text-sm text-chrome-500">
+                  <Search size={14} className="mt-0.5 shrink-0 text-signal" />
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Dynamic suggestions */}
+          {dynamicSuggestions.length > 0 && (
+            <div className="flex flex-col gap-3 rounded-[var(--radius-mg)] border border-amber-500/20 bg-amber-500/5 p-5">
+              <span className="mg-eyebrow text-amber-400">Suggested improvements</span>
+              <ul className="flex flex-col gap-2">
+                {dynamicSuggestions.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-chrome-500">
+                    <Search size={14} className="mt-0.5 shrink-0 text-amber-400" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <div className="mt-1 flex justify-end gap-2">
+          <div className="mt-1 flex justify-between gap-2">
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-[var(--radius-mg)] border border-hairline px-4 py-2 text-sm text-chrome-300 hover:border-chrome-500 hover:text-chrome-100"
+              onClick={resetToLive}
+              disabled={!liveData}
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] border border-hairline px-4 py-2 text-sm text-chrome-300 hover:border-chrome-500 hover:text-chrome-100 disabled:opacity-50"
             >
-              Cancel
+              <RotateCcw size={15} />
+              Reset to live default
             </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] bg-signal px-4 py-2 text-sm font-semibold text-black hover:bg-signal/90 disabled:opacity-50"
-            >
-              {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-              Save
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-[var(--radius-mg)] border border-hairline px-4 py-2 text-sm text-chrome-300 hover:border-chrome-500 hover:text-chrome-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] bg-signal px-4 py-2 text-sm font-semibold text-black hover:bg-signal/90 disabled:opacity-50"
+              >
+                {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                Save
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -181,6 +302,7 @@ export function PageSeoModal({ page, override, onClose, onSaved }: PageSeoModalP
   );
 }
 
+/** Groups a label with its SEO form control. */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">

@@ -5,7 +5,6 @@ import { NavbarContainer } from "@/components/nav/NavbarContainer";
 import { Footer } from "@/components/nav/Footer";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { CookieBanner } from "@/components/analytics/CookieBanner";
-import { JsonLd } from "@/components/JsonLd";
 import { site } from "@/lib/site";
 
 const fraunces = Fraunces({
@@ -73,23 +72,8 @@ export const metadata: Metadata = {
   },
 };
 
-/** Provides the global document shell, navigation, analytics, and structured data. */
+/** Provides the shared document shell for every application route. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const softwareApplicationSchema = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: site.name,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Any",
-    url: site.url,
-    description: site.description,
-    provider: {
-      "@type": "Organization",
-      name: site.name,
-      url: site.url,
-    },
-  };
-
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col">
@@ -99,7 +83,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
-        <JsonLd data={softwareApplicationSchema} />
         <PostHogProvider />
         <CookieBanner />
         <NavbarContainer />
