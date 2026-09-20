@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { CookieSettingsButton } from "@/components/analytics/CookieSettingsButton";
 import { footerColumns, site } from "@/lib/site";
 
 export function Footer() {
@@ -42,7 +43,10 @@ export function Footer() {
           <span>
             © {new Date().getFullYear()} {site.name}. All rights reserved.
           </span>
-          <span>Designed &amp; engineered in-house.</span>
+          <div className="flex items-center gap-4">
+            <CookieSettingsButton className="transition-colors hover:text-chrome-300" />
+            <span>Designed &amp; engineered in-house.</span>
+          </div>
         </Container>
       </div>
     </footer>

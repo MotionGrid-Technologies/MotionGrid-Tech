@@ -14,6 +14,14 @@ export function CookieBanner() {
     return () => clearTimeout(timer);
   }, []);
 
+  // A "Cookie Settings" control in the footer can re-open this banner after a
+  // choice has been made by dispatching a custom event.
+  useEffect(() => {
+    const open = () => setIsVisible(true);
+    window.addEventListener("cookie_settings_open", open);
+    return () => window.removeEventListener("cookie_settings_open", open);
+  }, []);
+
   const handleConsent = (status: "accepted" | "declined") => {
     setCookieConsent(status);
     setIsVisible(false);

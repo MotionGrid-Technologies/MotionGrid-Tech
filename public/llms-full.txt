@@ -1,0 +1,64 @@
+# MotionGrid Technologies
+
+> MotionGrid Technologies is a South African bespoke software agency. We design, build, and maintain custom software platforms — from client portals and field-service tools to applied AI features — engineered for precision, performance, and longevity.
+
+## About
+
+MotionGrid Technologies Pty(ltd) is a software development agency based in Johannesburg, South Africa. We build tailor-made platforms that automate workflows, connect teams, and scale with growing businesses. Every platform is engineered around the actual workflow it needs to carry — not templated.
+
+We are a two-founder studio:
+- **Prince Ncube** — Co-Founder & Engineering Lead. Systems architecture, backend, and infrastructure.
+- **Mnqobi Ntuli** — Co-Founder & Product Lead. Product and interface design, client delivery.
+
+## What we do
+
+- **Custom software platforms** — client portals, operations tooling, and workflow automation built around your actual process.
+- **Field-service & workshop tooling** — job scheduling, quoting, job cards, technician workflows, and vehicle-lifecycle tracking.
+- **Applied AI** — document processing, predictive scheduling, and AI features layered into existing products.
+- **Web platforms & e-commerce operations** — inventory, point-of-sale, and logistics tooling.
+
+## Industries we serve
+
+- Plumbing — field service and dispatch tooling for contractors.
+- Fleet Maintenance — maintenance scheduling, inspection logs, and vehicle-lifecycle tracking.
+- Panel Beating — estimate-to-handover workflows for panel and body shops.
+- Artificial Intelligence — applied AI features and automation in existing products.
+- Logistics — route planning and delivery operations tooling.
+- Healthcare — practice and clinic workflow software.
+- Retail — inventory, point-of-sale, and operations tooling.
+
+## Technology
+
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS.
+- **Backend & data:** Supabase, PostgreSQL, Node.js.
+- **Infrastructure:** Vercel, Supabase.
+- **AI:** machine learning, document processing, predictive scheduling.
+
+## How we work
+
+- No intake queue or account manager — every enquiry reaches a founder directly.
+- We give honest recommendations on whether software is the right fix for a problem.
+- Clear project handover from first conversation through delivery.
+
+## Useful links
+
+- [Home](https://motiongrid.co.za)
+- [About](/about)
+- [Products](/products)
+- [Technology](/technology)
+- [Industries](/industries)
+- [Blog](/blog)
+- [Testimonials](/testimonials)
+- [Contact](/contact)
+- [Book a demo](/contact#demo)
+
+## Legal
+
+- [Privacy Policy](/legal/privacy)
+- [Terms of Service](/legal/terms)
+- [Cookie Policy](/legal/cookies)
+
+## Contact
+
+- General enquiries: hi@motiongrid.co.za
+- Website: https://motiongrid.co.za

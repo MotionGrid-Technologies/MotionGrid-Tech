@@ -45,6 +45,11 @@ export type DemoBooking = {
 
 const SAST_OFFSET_MS = 120 * 60_000;
 
+/** PGRST205 = table/relation missing in the schema cache. */
+function isMissingTable(error: { code?: string }): boolean {
+  return error.code === "PGRST205";
+}
+
 /** UTC range covering one SAST calendar day. */
 function sastDayRange(dateKey: string): { from: Date; to: Date } {
   const [y, m, d] = dateKey.split("-").map(Number);
@@ -62,7 +67,15 @@ export async function getBookedSlotsForSastDate(dateKey: string): Promise<string
     .gte("slot_start", from.toISOString())
     .lt("slot_start", to.toISOString());
 
-  if (error) throw error;
+  if (error) {
+    // Missing table (migration not applied): treat as no bookings yet so the
+    // public slot feed keeps working instead of 500ing.
+    if (isMissingTable(error)) {
+      console.warn("[booking-store] demo_bookings missing; returning empty slot list", error);
+      return [];
+    }
+    throw error;
+  }
   return (data ?? []).map((row) => row.slot_start as string);
 }
 
@@ -73,6 +86,7 @@ export interface CreateBookingInput {
   phone: string;
   message: string;
   slotIso: string;
+  consentGiven: boolean;
 }
 
 export type CreateBookingResult =
@@ -113,6 +127,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       score: score.score,
       score_tier: score.tier,
       score_breakdown: score.breakdown,
+      consent_given: input.consentGiven,
     })
     .select("id")
     .single();
@@ -163,7 +178,15 @@ export async function listBookings(): Promise<DemoBooking[]> {
     .select("*")
     .order("slot_start", { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    // Missing table (migration not applied): the dashboard still renders, just
+    // without a bookings section.
+    if (isMissingTable(error)) {
+      console.warn("[booking-store] demo_bookings missing; returning empty list", error);
+      return [];
+    }
+    throw error;
+  }
   return (data ?? []).map(mapBooking);
 }
 

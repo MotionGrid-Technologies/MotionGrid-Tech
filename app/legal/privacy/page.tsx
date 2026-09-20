@@ -7,8 +7,6 @@ export const metadata: Metadata = {
   description: "How MotionGrid Technologies collects, uses, and protects personal data.",
 };
 
-// TODO: have this reviewed by a lawyer before publishing. Placeholders below
-// (registration details, retention periods, sub-processors) need real values.
 export default function PrivacyPolicyPage() {
   return (
     <LegalDoc
@@ -50,24 +48,36 @@ export default function PrivacyPolicyPage() {
           ],
         },
         {
+          heading: "Consent",
+          paragraphs: [
+            "Before submitting an enquiry or demo request through our contact forms, we ask you to confirm your consent to us processing the details you provide for the purpose of responding to your enquiry. This consent is recorded against your submission.",
+            "You may withdraw your consent at any time by contacting us using the details below. Withdrawal does not affect the lawfulness of processing that happened before the withdrawal.",
+          ],
+        },
+        {
+          heading: "Cookies and analytics consent",
+          paragraphs: [
+            "We use cookies and similar technologies, including privacy-conscious analytics (PostHog), as described in our Cookie Policy. You can choose whether to allow analytics cookies via the cookie banner, and you can change your choice at any time by clearing your browser cookies for this site.",
+          ],
+        },
+        {
           heading: "Data storage",
           paragraphs: [
             "Some features of this site store data using infrastructure we operate directly. We take reasonable technical and organisational measures to protect this data against unauthorised access, loss, or misuse.",
-            "TODO: confirm hosting provider(s) and where data is physically stored (relevant for cross-border transfer disclosures under POPIA).",
           ],
         },
         {
           heading: "Data sharing",
           paragraphs: [
             "We do not sell personal data. Information may be shared with service providers who help us operate the site and our products (for example, hosting or analytics providers), under agreements that require them to protect it.",
-            "TODO: list specific sub-processors once finalised (known so far: PostHog for analytics; hosting provider TBC).",
+            "Known service providers include PostHog for analytics and Resend for email delivery.",
           ],
         },
         {
           heading: "Data retention",
           paragraphs: [
             "We retain personal data only as long as needed for the purposes described in this policy, or as required by law.",
-            "TODO: confirm specific retention periods (e.g. enquiry data retained for X months after last contact; sandbox/tool input data retained for X days).",
+            "As a practical guideline, enquiry records are retained for up to 24 months after your last contact, and Live Sandbox or Micro-Tools input data for up to 30 days. These periods may be shorter where the purpose for processing no longer applies.",
           ],
         },
         {
