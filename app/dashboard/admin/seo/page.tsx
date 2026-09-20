@@ -1,5 +1,6 @@
-import { SeoScorer, type SeoPost } from "@/components/admin/SeoScorer";
+import { SeoScorer, type SeoPost, type SeoPage } from "@/components/admin/SeoScorer";
 import { listBlogPosts } from "@/lib/blog-store";
+import { publicPages } from "@/lib/public-pages";
 
 export const dynamic = "force-dynamic";
 
@@ -21,19 +22,26 @@ export default async function SeoPage() {
     content: p.content,
   }));
 
+  const seoPages: SeoPage[] = publicPages.map((pg) => ({
+    id: pg.path,
+    path: pg.path,
+    label: pg.label,
+  }));
+
   return (
     <section className="py-12">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 md:px-8">
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-3xl text-chrome-100">SEO scorer</h1>
           <p className="text-sm text-chrome-500">
-            Grade a published blog post against on-page SEO best practices —
-            title, meta description, headings, images, keyword placement, and
-            content length.
+            Grade blog posts and live public pages against on-page SEO best
+            practices — title, meta description, headings, images, keyword
+            placement, and content length. Public pages are scored from the
+            real HTML being served, so results never go stale.
           </p>
         </header>
 
-        <SeoScorer posts={seoPosts} />
+        <SeoScorer posts={seoPosts} pages={seoPages} />
       </div>
     </section>
   );

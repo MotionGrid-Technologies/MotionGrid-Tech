@@ -66,7 +66,7 @@ a single Supabase project (the MotionGrid one):
 - [x] Contact/demo form: **log to Supabase** (`demo_requests`) **AND** send Resend email (admin notification to `hello@motiongrid.co.za` + prospect confirmation)
 - [x] Add MotionGrid marketing templates: `contact_form_submission`, `demo_request_confirmation`
 - [x] Build **Tiptap editor/viewer for MotionGrid marketing emails ONLY**
-  - deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-underline`, `@tiptap/extension-text-align`, `@tiptap/extension-text-style`, `@tiptap/extension-color`, `@tiptap/extension-image`, `@tiptap/extension-placeholder`, `isomorphic-dompurify`
+  - deps: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-underline`, `@tiptap/extension-text-align`, `@tiptap/extension-text-style`, `@tiptap/extension-color`, `@tiptap/extension-image`, `@tiptap/extension-placeholder`, `dompurify` (browser-only; `isomorphic-dompurify` removed to drop the jsdom serverless crash)
   - `EmailEditor.tsx`, `EmailPreview.tsx` (sandboxed iframe), merge-tag toolbar
   - Marketing email admin page under `/dashboard/admin/marketing/emails`
 - [x] Marketing email API routes: `app/api/admin/marketing-emails/route.ts` (list/create), `[id]/route.ts` (get/update/delete), `[id]/send/route.ts` (test send). NOTE: preview is client-side (`EmailPreview` + shared merge-tag renderer), so no `/preview` route was needed.
