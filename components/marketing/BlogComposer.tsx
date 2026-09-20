@@ -336,7 +336,7 @@ export function BlogComposer({ id, initial, categories, authors }: BlogComposerP
                     src={featuredImageUrl}
                     alt={featuredImageAlt || title}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 1216px) 100vw, 1152px"
                     className="object-cover"
                   />
                 </div>
@@ -460,7 +460,7 @@ function ArticlePreview({
             src={featuredImageUrl}
             alt={featuredImageAlt || title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 1216px) 100vw, 1152px"
             className="object-cover"
           />
         </div>

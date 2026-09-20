@@ -30,7 +30,7 @@ export default function IndustriesPage() {
             {active.map((ind) => (
               <Card key={ind.slug} className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display text-lg text-chrome-100">{ind.name}</h3>
+                  <h2 className="font-display text-lg text-chrome-100">{ind.name}</h2>
                   <StatusBadge status={ind.status} />
                 </div>
                 <p className="text-sm leading-relaxed text-chrome-500">{ind.description}</p>

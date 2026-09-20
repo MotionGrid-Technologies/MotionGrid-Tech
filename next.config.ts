@@ -10,11 +10,12 @@ const siteSupabaseHost = process.env.SITE_SUPABASE_URL
 // Content-Security-Policy. Stricter than default-src 'self' but relaxed
 // exactly where the app needs it: Next.js inline hydration scripts/styles,
 // Cloudflare Turnstile, PostHog (EU data residency), Supabase REST + Storage,
-// and embedded YouTube. `unsafe-inline`/`unsafe-eval` are required for Next.js
-// and its dev tooling; a nonce-based policy would need middleware plumbing.
+// and embedded YouTube. `unsafe-inline` is required for hydration, while
+// `unsafe-eval` is limited to development tooling.
+const unsafeEval = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://eu-assets.i.posthog.com",
+  `script-src 'self' 'unsafe-inline'${unsafeEval} https://challenges.cloudflare.com https://eu-assets.i.posthog.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

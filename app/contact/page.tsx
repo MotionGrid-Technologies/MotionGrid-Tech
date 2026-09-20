@@ -126,7 +126,7 @@ function SlotForm() {
   // while failures keep the key so the visitor's input is preserved.
   return (
     <SlotFormBody
-      key={state.nonce ?? "initial"}
+      key={state.nonce ?? 0}
       state={state}
       formAction={formAction}
       pending={pending}
@@ -234,7 +234,7 @@ function MessageForm() {
 
   return (
     <MessageFormBody
-      key={state.nonce ?? "initial"}
+      key={state.nonce ?? 0}
       state={state}
       formAction={formAction}
       pending={pending}

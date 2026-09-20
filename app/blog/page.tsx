@@ -76,7 +76,7 @@ export default async function BlogArchivePage({
                   src={heroPost.featured_image_url}
                   alt={heroPost.featured_image_alt || heroPost.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes="(max-width: 1023px) 100vw, 50vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               ) : (

@@ -67,7 +67,14 @@ export default async function ReviewsPage({
               <label className="mg-eyebrow mb-1.5 block" htmlFor="r-name">
                 Name
               </label>
-              <input id="r-name" name="name" required className="mg-input" placeholder="Jane Doe" />
+              <input
+                id="r-name"
+                name="name"
+                minLength={2}
+                required
+                className="mg-input"
+                placeholder="Jane Doe"
+              />
             </div>
             <div>
               <label className="mg-eyebrow mb-1.5 block" htmlFor="r-role">
@@ -102,6 +109,7 @@ export default async function ReviewsPage({
               id="r-quote"
               name="quote"
               rows={3}
+              minLength={5}
               required
               className="mg-input"
               placeholder="What did the client say?"

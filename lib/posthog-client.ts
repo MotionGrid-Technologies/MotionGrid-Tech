@@ -44,7 +44,10 @@ export function getPostHog(): Promise<PostHog | null> {
 // accepted analytics cookies, so consent is never the side-effect of a call.
 export async function getPostHogIfConsented(): Promise<PostHog | null> {
   if (getCookieConsent() !== "accepted") return null;
-  return getPostHog();
+  const posthog = await getPostHog();
+  if (!posthog || getCookieConsent() !== "accepted") return null;
+  posthog.opt_in_capturing();
+  return posthog;
 }
 
 // Applies the visitor's current consent choice to an initialized PostHog.
