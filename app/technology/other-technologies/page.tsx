@@ -5,12 +5,15 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { TechCategoryCard } from "@/components/ui/techCategoryCard";
 import { FrontendFrameworks, BackendFrameworks } from "@/lib/technologies";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Other Technologies",
-  description:
-    "Browse the wider frontend and backend technologies MotionGrid Technologies reaches for beyond the core stack.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/technology/other-technologies", {
+    title: "Other Technologies",
+    description:
+      "Browse the wider frontend and backend technologies MotionGrid Technologies reaches for beyond the core stack.",
+  });
+}
 
 export default function OtherTechnologiesPage() {
   const crumbs = [

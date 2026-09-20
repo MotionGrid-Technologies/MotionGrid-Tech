@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -5,19 +6,25 @@ import { BlogCard, AuthorAvatar } from "@/components/blog/BlogCard";
 import { CategoryFilter } from "@/components/blog/CategoryFilter";
 import { listBlogCategories, listPublishedBlogPosts, listPopularBlogPosts } from "@/lib/blog-store";
 import { estimateReadingTime } from "@/lib/blog-reading-time";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 9;
 
-export const metadata = {
-  title: "Blog",
-  description:
-    "Insights and articles from MotionGrid Technologies on bespoke software, engineering, product, and design.",
-  alternates: {
-    types: { "application/rss+xml": "/blog/feed.xml" },
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const base = await buildPageMetadata("/blog", {
+    title: "Blog",
+    description:
+      "Insights and articles from MotionGrid Technologies on bespoke software, engineering, product, and design.",
+  });
+  return {
+    ...base,
+    alternates: {
+      types: { "application/rss+xml": "/blog/feed.xml" },
+    },
+  };
+}
 
 export default async function BlogArchivePage({
   searchParams,

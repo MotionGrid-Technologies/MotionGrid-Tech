@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { LegalDoc } from "@/components/sections/LegalDoc";
 import { site } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Cookie Policy",
-  description: "How MotionGrid Technologies uses cookies and similar technologies.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/legal/cookies", {
+    title: "Cookie Policy",
+    description: "How MotionGrid Technologies uses cookies and similar technologies.",
+  });
+}
 
 export default function CookiePolicyPage() {
   return (

@@ -6,12 +6,15 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TechBadge } from "@/components/ui/TechBadge";
 import { Button } from "@/components/ui/Button";
 import { technologies } from "@/lib/technologies";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Technology",
-  description:
-    "The stack MotionGrid Technologies specialises in: Next.js, React, TypeScript, C#, Python, and Supabase.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/technology", {
+    title: "Technology",
+    description:
+      "The stack MotionGrid Technologies specialises in: Next.js, React, TypeScript, C#, Python, and Supabase.",
+  });
+}
 
 export default function TechnologyPage() {
   return (

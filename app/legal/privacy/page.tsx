@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { LegalDoc } from "@/components/sections/LegalDoc";
 import { site } from "@/lib/site";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "How MotionGrid Technologies collects, uses, and protects personal data.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/legal/privacy", {
+    title: "Privacy Policy",
+    description: "How MotionGrid Technologies collects, uses, and protects personal data.",
+  });
+}
 
 export default function PrivacyPolicyPage() {
   return (

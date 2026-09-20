@@ -5,12 +5,15 @@ import { FaqAccordion } from "@/components/sections/FaqAccordion";
 import { JsonLd } from "@/components/JsonLd";
 import { Button } from "@/components/ui/Button";
 import { faqs } from "@/lib/faqs";
+import { buildPageMetadata } from "@/lib/page-metadata";
 
-export const metadata: Metadata = {
-  title: "FAQ",
-  description:
-    "Answers to the questions businesses ask us most — about how we work, timelines, integration, and pricing.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/faq", {
+    title: "FAQ",
+    description:
+      "Answers to the questions businesses ask us most — about how we work, timelines, integration, and pricing.",
+  });
+}
 
 const faqPageSchema = {
   "@context": "https://schema.org",
