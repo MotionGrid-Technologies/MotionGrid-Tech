@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Terms governing use of MotionGrid Technologies' website and products.",
 };
 
-// TODO: have this reviewed by a lawyer before publishing.
+/** Renders MotionGrid's website terms of use. */
 export default function TermsPage() {
   return (
     <LegalDoc
@@ -45,6 +45,12 @@ export default function TermsPage() {
           ],
         },
         {
+          heading: "Your representations",
+          paragraphs: [
+            "By using this site or submitting any form, you confirm that the information you provide is accurate and yours to share, and that you have read and agree to our Privacy Policy, including the processing and consent practices described there.",
+          ],
+        },
+        {
           heading: "Client engagements",
           paragraphs: [
             "Work performed for clients (including case studies referenced on this site) is governed by separate signed agreements, not by these terms.",
@@ -60,7 +66,6 @@ export default function TermsPage() {
           heading: "Limitation of liability",
           paragraphs: [
             "To the fullest extent permitted by applicable law, MotionGrid Technologies shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of, or inability to use, this site. Our total liability for any claim arising from your use of this site shall not exceed an amount reasonable in the circumstances.",
-            "TODO: confirm this clause with a lawyer, particularly around any liability that cannot legally be limited under South African consumer protection law (e.g. the Consumer Protection Act, if it applies to your relationship with site visitors).",
           ],
         },
         {
@@ -78,7 +83,7 @@ export default function TermsPage() {
         {
           heading: "Governing law",
           paragraphs: [
-            "These terms are governed by the laws of the Republic of South Africa. TODO: confirm this is the correct jurisdiction, and specify a forum (e.g. courts of a particular province) if desired.",
+            "These terms are governed by the laws of the Republic of South Africa.",
           ],
         },
         {

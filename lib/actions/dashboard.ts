@@ -33,6 +33,10 @@ export type DemoFormState = {
   ok: boolean;
   message: string;
   errors?: Record<string, string>;
+  // Monotonic id bumped only on success. The contact form uses it as a React
+  // `key` to remount itself (resetting fields) after a successful submit while
+  // preserving user input across failures.
+  nonce?: number;
 };
 
 async function requireDashboardAccess(): Promise<boolean> {
@@ -55,10 +59,22 @@ function validateLeadFields(input: {
   return errors;
 }
 
+/** Validates that a public contact submission includes privacy consent. */
+function validateConsent(formData: FormData): string | null {
+  const consent = formData.get("consent");
+  if (consent !== "on") {
+    return "Please confirm you agree to the privacy policy so we can respond to your enquiry.";
+  }
+  return null;
+}
+
+/** Validates and stores a message-only demo enquiry. */
 export async function submitDemoRequest(
   _prev: DemoFormState,
   formData: FormData
 ): Promise<DemoFormState> {
+  const nonce = previousNonce(formData);
+
   // Rate limit: 3 submissions per IP per 5 minutes.
   const ip = getClientIpFromHeaders(await headers());
   const { allowed } = await checkRateLimit(`demo:${ip}`, {
@@ -66,13 +82,13 @@ export async function submitDemoRequest(
     windowMs: 5 * 60 * 1000,
   });
   if (!allowed) {
-    return { ok: false, message: "Too many requests. Please try again in a few minutes." };
+    return { ok: false, message: "Too many requests. Please try again in a few minutes.", nonce };
   }
 
   const token = String(formData.get("cf-turnstile-response") ?? "");
 
   if (!token || !(await verifyTurnstileToken(token, "demo_request"))) {
-    return { ok: false, message: "CAPTCHA verification failed. Please try again." };
+    return { ok: false, message: "CAPTCHA verification failed. Please try again.", nonce };
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -82,16 +98,18 @@ export async function submitDemoRequest(
   const message = String(formData.get("message") ?? "").trim();
 
   const errors = validateLeadFields({ name, email, message });
+  const consentError = validateConsent(formData);
+  if (consentError) errors.consent = consentError;
   if (Object.keys(errors).length) {
-    return { ok: false, message: "Please fix the highlighted fields.", errors };
+    return { ok: false, message: "Please fix the highlighted fields.", errors, nonce };
   }
 
   try {
-    await insertDemoRequest({ name, company, email, phone, message });
+    await insertDemoRequest({ name, company, email, phone, message, consentGiven: true });
     revalidatePath("/dashboard/admin/dashboard");
   } catch (err) {
     console.error("submitDemoRequest failed", err);
-    return { ok: false, message: "Something went wrong saving your request." };
+    return { ok: false, message: "Something went wrong saving your request.", nonce };
   }
 
   // Fire marketing emails (admin notification + prospect confirmation) and
@@ -103,7 +121,7 @@ export async function submitDemoRequest(
     enrollLeadInSequence("welcome", { email, name }),
   ]);
 
-  return { ok: true, message: "Thanks — we'll be in touch shortly." };
+  return { ok: true, message: "Thanks — we'll be in touch shortly.", nonce: nonce + 1 };
 }
 
 // ---------------------------------------------------------------------------
@@ -114,12 +132,21 @@ export type BookingFormState = {
   ok: boolean;
   message: string;
   errors?: Record<string, string>;
+  nonce?: number;
 };
 
+/** Reads the prior successful-submission nonce from form data. */
+function previousNonce(formData: FormData): number {
+  return Number(formData.get("nonce") ?? 0) || 0;
+}
+
+/** Validates and stores a demo booking for an available slot. */
 export async function bookDemoSlot(
   _prev: BookingFormState,
   formData: FormData
 ): Promise<BookingFormState> {
+  const nonce = previousNonce(formData);
+
   // Rate limit: 3 booking attempts per IP per 5 minutes.
   const ip = getClientIpFromHeaders(await headers());
   const { allowed } = await checkRateLimit(`booking:${ip}`, {
@@ -127,13 +154,13 @@ export async function bookDemoSlot(
     windowMs: 5 * 60 * 1000,
   });
   if (!allowed) {
-    return { ok: false, message: "Too many requests. Please try again in a few minutes." };
+    return { ok: false, message: "Too many requests. Please try again in a few minutes.", nonce };
   }
 
   const token = String(formData.get("cf-turnstile-response") ?? "");
 
   if (!token || !(await verifyTurnstileToken(token, "demo_request"))) {
-    return { ok: false, message: "CAPTCHA verification failed. Please try again." };
+    return { ok: false, message: "CAPTCHA verification failed. Please try again.", nonce };
   }
 
   const name = String(formData.get("name") ?? "").trim();
@@ -145,22 +172,32 @@ export async function bookDemoSlot(
 
   const errors = validateLeadFields({ name, email, message });
   if (!slotIso) errors.slot = "Pick a time slot first.";
+  const consentError = validateConsent(formData);
+  if (consentError) errors.consent = consentError;
   if (Object.keys(errors).length) {
-    return { ok: false, message: "Please fix the highlighted fields.", errors };
+    return { ok: false, message: "Please fix the highlighted fields.", errors, nonce };
   }
 
   let booking;
   try {
-    const result = await createBooking({ name, company, email, phone, message, slotIso });
+    const result = await createBooking({
+      name,
+      company,
+      email,
+      phone,
+      message,
+      slotIso,
+      consentGiven: true,
+    });
     if (!result.ok) {
-      return { ok: false, message: result.message, errors: { slot: result.message } };
+      return { ok: false, message: result.message, errors: { slot: result.message }, nonce };
     }
     booking = result.booking;
     revalidatePath("/dashboard/admin/dashboard");
     revalidatePath("/dashboard/admin/analytics");
   } catch (err) {
     console.error("bookDemoSlot failed", err);
-    return { ok: false, message: "Something went wrong saving your booking." };
+    return { ok: false, message: "Something went wrong saving your booking.", nonce };
   }
 
   // Confirmation (with .ics calendar invite) + admin notification + welcome
@@ -185,6 +222,7 @@ export async function bookDemoSlot(
   return {
     ok: true,
     message: "Booked — check your inbox for the confirmation and calendar invite.",
+    nonce: nonce + 1,
   };
 }
 

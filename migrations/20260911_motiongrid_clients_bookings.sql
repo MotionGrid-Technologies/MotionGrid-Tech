@@ -26,6 +26,29 @@ CREATE TABLE IF NOT EXISTS public.clients (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Drift guard: this project's legacy `clients` table (company/phone/slug,
+-- referenced by meetings/proposals/projects) predates this migration. Add the
+-- MotionGrid columns when they're absent so the CREATE TABLE above is a no-op
+-- and the indexes below still succeed.
+ALTER TABLE public.clients
+    ADD COLUMN IF NOT EXISTS domain TEXT,
+    ADD COLUMN IF NOT EXISTS project_status TEXT,
+    ADD COLUMN IF NOT EXISTS notes TEXT;
+
+ALTER TABLE public.clients
+    DROP CONSTRAINT IF EXISTS clients_project_status_check;
+
+UPDATE public.clients
+SET project_status = 'prospect'
+WHERE project_status IS NULL
+   OR project_status NOT IN ('prospect', 'active', 'paused', 'offboarded');
+
+ALTER TABLE public.clients
+    ALTER COLUMN project_status SET DEFAULT 'prospect',
+    ALTER COLUMN project_status SET NOT NULL,
+    ADD CONSTRAINT clients_project_status_check
+        CHECK (project_status IN ('prospect', 'active', 'paused', 'offboarded'));
+
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX IF NOT EXISTS idx_clients_domain ON public.clients(domain);

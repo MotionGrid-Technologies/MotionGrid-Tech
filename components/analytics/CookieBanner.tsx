@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { getCookieConsent, setCookieConsent } from "@/lib/cookies";
 
+/** Presents cookie preferences and persists the visitor's consent choice. */
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -12,6 +13,14 @@ export function CookieBanner() {
     if (getCookieConsent() !== "undecided") return;
     const timer = setTimeout(() => setIsVisible(true), 1000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // A "Cookie Settings" control in the footer can re-open this banner after a
+  // choice has been made by dispatching a custom event.
+  useEffect(() => {
+    const open = () => setIsVisible(true);
+    window.addEventListener("cookie_settings_open", open);
+    return () => window.removeEventListener("cookie_settings_open", open);
   }, []);
 
   const handleConsent = (status: "accepted" | "declined") => {

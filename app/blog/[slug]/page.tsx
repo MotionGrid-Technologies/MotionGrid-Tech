@@ -18,6 +18,7 @@ import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
+/** Builds social and search metadata for a published blog post. */
 export async function generateMetadata({
   params,
 }: {
@@ -32,7 +33,7 @@ export async function generateMetadata({
   const metaDescription = post.meta_description || post.excerpt || "";
 
   return {
-    title: post.meta_title ? `${post.title}` : post.title,
+    title: post.meta_title || post.title,
     description: metaDescription,
     alternates: { canonical: url },
     openGraph: {
@@ -44,7 +45,7 @@ export async function generateMetadata({
       publishedTime: post.published_at ?? undefined,
       images: post.featured_image_url
         ? [{ url: post.featured_image_url }]
-        : [{ url: `${site.url}/og-image.png` }],
+        : [{ url: `${site.url}/opengraph-image` }],
     },
     twitter: {
       card: "summary_large_image",
@@ -52,11 +53,12 @@ export async function generateMetadata({
       description: metaDescription,
       images: post.featured_image_url
         ? [post.featured_image_url]
-        : [`${site.url}/og-image.png`],
+        : [`${site.url}/opengraph-image`],
     },
   };
 }
 
+/** Renders a published blog post and records its view on a best-effort basis. */
 export default async function BlogPostPage({
   params,
 }: {
@@ -95,7 +97,7 @@ export default async function BlogPostPage({
     url: postUrl,
     datePublished: post.published_at ?? undefined,
     dateModified: post.updated_at,
-    image: post.featured_image_url || `${site.url}/og-image.png`,
+    image: post.featured_image_url || `${site.url}/opengraph-image`,
     author: {
       "@type": "Person",
       name: authorName,
@@ -165,7 +167,7 @@ export default async function BlogPostPage({
                 src={post.featured_image_url}
                 alt={post.featured_image_alt || post.title}
                 fill
-                unoptimized
+                sizes="(max-width: 767px) 100vw, 768px"
                 className="object-cover"
               />
             </div>

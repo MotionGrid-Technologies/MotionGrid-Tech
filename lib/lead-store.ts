@@ -76,6 +76,7 @@ export async function insertDemoRequest(input: {
   email: string;
   phone: string;
   message: string;
+  consentGiven: boolean;
 }): Promise<{ score: number; tier: string }> {
   // Score at intake (TODO Phase 8) so every lead carries its rank from the
   // moment it lands.
@@ -92,6 +93,7 @@ export async function insertDemoRequest(input: {
       score,
       score_tier: tier,
       score_breakdown: breakdown,
+      consent_given: input.consentGiven,
     });
 
   if (error) throw error;

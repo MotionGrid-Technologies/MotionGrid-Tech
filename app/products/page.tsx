@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Hammer } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { PageHero } from "@/components/sections/PageHero";
-import { StatusPill } from "@/components/ui/StatusPill";
-import { EmptyCard } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 export const metadata: Metadata = {
   title: "Products",
   description: "In-house tools built and maintained by MotionGrid Technologies.",
 };
 
-// TODO: fill in each product as it's ready. name/status/summary are the
-// minimum — description, screenshots, and links can be added per product.
 const products: {
   name: string;
   status: "active" | "soon";
@@ -21,21 +19,18 @@ const products: {
   {
     name: "AutoField",
     status: "active",
-    summary: "This is a website for workshops where they can create quotes and invoices and keep track of leads and jobs all from one central software", // TODO: one-line summary of what AutoField does
+    summary:
+      "Workshop management software for quoting, invoicing, and keeping track of leads and jobs in one place.",
     image: {
       src: "/autofield-pics/autofield.png",
       width: 1313,
       height: 823,
-      alt: "AutoField",
+      alt: "AutoField workshop management dashboard",
     },
-  },
-  {
-    name: "Reserved slot",
-    status: "soon",
-    summary: "",
   },
 ];
 
+/** Renders the product catalogue and product detail summaries. */
 export default function ProductsPage() {
   return (
     <>
@@ -56,36 +51,34 @@ export default function ProductsPage() {
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-2xl text-chrome-100">{p.name}</h3>
-                <StatusPill status={p.status} />
+                <StatusBadge status={p.status} />
               </div>
-              {p.summary ? (
-                <p className="text-sm leading-relaxed text-chrome-500">{p.summary}</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {/* TODO: replace placeholder lines with real product copy */}
-                  <div className="h-3 w-full rounded-full bg-graphite-high" />
-                  <div className="h-3 w-2/3 rounded-full bg-graphite-high" />
-                </div>
-              )}
-              <div className="flex h-32 items-center justify-center rounded-[var(--radius-mg)] border border-dashed border-hairline">
-                {p.image ? (
+              <p className="text-sm leading-relaxed text-chrome-500">{p.summary}</p>
+              {p.image ? (
+                <div className="flex h-40 items-center justify-center overflow-hidden rounded-[var(--radius-mg)] border border-hairline bg-obsidian/60">
                   <Image
                     src={p.image.src}
                     alt={p.image.alt}
                     width={p.image.width}
                     height={p.image.height}
+                    priority
+                    sizes="(min-width: 768px) 50vw, 100vw"
                     className="h-auto w-auto max-h-full max-w-full object-contain"
                   />
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </div>
           ))}
 
-          <EmptyCard
-            label="Next product slot"
-            note="Reserved for the next in-house tool we ship."
-            className="md:col-span-2"
-          />
+          <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-[var(--radius-mg-lg)] border border-dashed border-hairline bg-transparent p-8 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-hairline bg-graphite/60">
+              <Hammer size={24} className="text-chrome-500" strokeWidth={1.5} />
+            </span>
+            <span className="mg-eyebrow text-chrome-700">Next product slot</span>
+            <p className="max-w-xs text-sm text-chrome-700">
+              Reserved for the next in-house tool we ship — in development now.
+            </p>
+          </div>
         </Container>
       </section>
     </>

@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TechBadge } from "@/components/ui/TechBadge";
 import { Card } from "@/components/ui/Card";
-import { StatusPill } from "@/components/ui/StatusPill";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { technologies } from "@/lib/technologies";
 import { industries } from "@/lib/site";
 
+/** Renders the public marketing homepage. */
 export default function Home() {
   return (
     <>
@@ -91,7 +93,7 @@ export default function Home() {
               <Card key={ind.slug} className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display text-lg text-chrome-100">{ind.name}</h3>
-                  <StatusPill status={ind.status} />
+                  <StatusBadge status={ind.status} />
                 </div>
                 <p className="text-sm leading-relaxed text-chrome-500">{ind.description}</p>
               </Card>
@@ -102,6 +104,11 @@ export default function Home() {
           </Button>
         </Container>
       </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Testimonials                                                      */}
+      {/* ---------------------------------------------------------------- */}
+      <Testimonials />
 
       {/* ---------------------------------------------------------------- */}
       {/* CTA banner                                                        */}

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import posthog from "posthog-js";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { isPostHogConfigured } from "@/lib/posthog";
+import { getPostHogIfConsented } from "@/lib/posthog-client";
 
+/** Reports a route error and renders recovery controls. */
 export default function Error({
   error,
   reset,
@@ -15,9 +15,9 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error(error);
-    if (isPostHogConfigured && posthog.has_opted_in_capturing()) {
-      posthog.captureException(error);
-    }
+    getPostHogIfConsented().then((posthog) => {
+      if (posthog) posthog.captureException(error);
+    });
   }, [error]);
 
   return (

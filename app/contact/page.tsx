@@ -9,14 +9,13 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
 import { SlotPicker } from "@/components/sections/SlotPicker";
 import { founders, site } from "@/lib/site";
-import posthog from "posthog-js";
 import {
   bookDemoSlot,
   submitDemoRequest,
   type BookingFormState,
   type DemoFormState,
 } from "@/lib/actions/dashboard";
-import { isPostHogConfigured } from "@/lib/posthog";
+import { getPostHogIfConsented } from "@/lib/posthog-client";
 
 type Mode = "slot" | "message";
 
@@ -121,6 +120,30 @@ export default function ContactPage() {
 function SlotForm() {
   const initialState: BookingFormState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(bookDemoSlot, initialState);
+
+  // The action bumps `nonce` only on success. Using it as the key remounts the
+  // inner form (clearing fields, slot and captcha) after a successful booking,
+  // while failures keep the key so the visitor's input is preserved.
+  return (
+    <SlotFormBody
+      key={state.nonce ?? 0}
+      state={state}
+      formAction={formAction}
+      pending={pending}
+    />
+  );
+}
+
+/** Renders the interactive demo-slot form for the current action state. */
+function SlotFormBody({
+  state,
+  formAction,
+  pending,
+}: {
+  state: BookingFormState;
+  formAction: (formData: FormData) => void;
+  pending: boolean;
+}) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [slot, setSlot] = useState("");
   const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
@@ -129,7 +152,9 @@ function SlotForm() {
     <form
       action={formAction}
       onSubmit={() => {
-        if (isPostHogConfigured) posthog.capture("demo_slot_booked");
+        getPostHogIfConsented().then((posthog) => {
+          if (posthog) posthog.capture("demo_slot_booked");
+        });
         setTurnstileToken("");
         turnstileRef.current?.reset();
       }}
@@ -137,6 +162,7 @@ function SlotForm() {
     >
       <SlotPicker value={slot} onChange={setSlot} error={state.errors?.slot} />
       <input type="hidden" name="slot" value={slot} />
+      <input type="hidden" name="nonce" value={state.nonce ?? 0} />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field label="Full name" name="name" error={state.errors?.name} />
@@ -162,6 +188,8 @@ function SlotForm() {
         )}
       </div>
       <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+
+      <ConsentCheckbox error={state.errors?.consent} />
 
       <Turnstile
         ref={turnstileRef}
@@ -204,6 +232,27 @@ function SlotForm() {
 function MessageForm() {
   const initialState: DemoFormState = { ok: false, message: "" };
   const [state, formAction, pending] = useActionState(submitDemoRequest, initialState);
+
+  return (
+    <MessageFormBody
+      key={state.nonce ?? 0}
+      state={state}
+      formAction={formAction}
+      pending={pending}
+    />
+  );
+}
+
+/** Renders the message-only contact form for the current action state. */
+function MessageFormBody({
+  state,
+  formAction,
+  pending,
+}: {
+  state: DemoFormState;
+  formAction: (formData: FormData) => void;
+  pending: boolean;
+}) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const turnstileRef = useRef<TurnstileInstance | undefined>(undefined);
 
@@ -211,7 +260,9 @@ function MessageForm() {
     <form
       action={formAction}
       onSubmit={() => {
-        if (isPostHogConfigured) posthog.capture("demo_request_submitted");
+        getPostHogIfConsented().then((posthog) => {
+          if (posthog) posthog.capture("demo_request_submitted");
+        });
         setTurnstileToken("");
         turnstileRef.current?.reset();
       }}
@@ -241,6 +292,9 @@ function MessageForm() {
         )}
       </div>
       <input type="hidden" name="cf-turnstile-response" value={turnstileToken} />
+      <input type="hidden" name="nonce" value={state.nonce ?? 0} />
+
+      <ConsentCheckbox error={state.errors?.consent} />
 
       <Turnstile
         ref={turnstileRef}
@@ -331,6 +385,32 @@ function Field({
         type={type}
         className="w-full rounded-[var(--radius-mg)] border border-hairline bg-graphite/50 px-4 py-3 text-sm text-chrome-100 placeholder:text-chrome-700 focus:border-signal/60"
       />
+      {error && <p className="mt-2 text-xs text-signal">{error}</p>}
+    </div>
+  );
+}
+
+// POPIA consent — single required checkbox covering enquiry response + privacy
+// policy. Kept as one low-friction control per the brief.
+function ConsentCheckbox({ error }: { error?: string }) {
+  return (
+    <div>
+      <label className="flex items-start gap-3 text-xs leading-relaxed text-chrome-500">
+        <input
+          type="checkbox"
+          name="consent"
+          value="on"
+          required
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-signal)]"
+        />
+        <span>
+          I agree to MotionGrid processing my details to respond to this enquiry. See our{" "}
+          <a href="/legal/privacy" className="text-chrome-300 underline hover:text-chrome-100">
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
       {error && <p className="mt-2 text-xs text-signal">{error}</p>}
     </div>
   );

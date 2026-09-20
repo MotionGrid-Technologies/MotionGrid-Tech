@@ -17,6 +17,7 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+/** Renders an author's image or an initials fallback. */
 export function AuthorAvatar({
   name,
   imageUrl,
@@ -33,7 +34,6 @@ export function AuthorAvatar({
         alt={name}
         width={size}
         height={size}
-        unoptimized
         className="rounded-full object-cover"
         style={{ width: size, height: size }}
       />
@@ -49,6 +49,7 @@ export function AuthorAvatar({
   );
 }
 
+/** Renders a linked summary card for a blog post. */
 export function BlogCard({
   post,
   showAuthor = true,
@@ -72,7 +73,7 @@ export function BlogCard({
               src={post.featured_image_url}
               alt={post.featured_image_alt || post.title}
               fill
-              unoptimized
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </div>

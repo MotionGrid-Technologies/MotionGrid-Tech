@@ -50,7 +50,7 @@ app/                    routes (App Router)
     dashboard, seo, stats, marketing/blog, marketing/emails
   api/admin/              blog, marketing-emails, upload-image
 components/
-  ui/                     Button, Card, SectionHeading, Eyebrow, StatusPill,
+  ui/                     Button, Card, SectionHeading, Eyebrow, StatusBadge,
                           Container, ContactLine, etc.
   motifs/                 Filament + FilamentDivider (signature graphic device)
   nav/                    Navbar, NavbarContainer, Footer, AdminSidebar

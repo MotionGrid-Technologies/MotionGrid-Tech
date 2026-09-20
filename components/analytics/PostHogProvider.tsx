@@ -2,14 +2,14 @@
 
 import { Suspense, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
-import { getCookieConsent } from "@/lib/cookies";
+import { getPostHogIfConsented, applyPostHogConsent } from "@/lib/posthog-client";
 import { isPostHogConfigured } from "@/lib/posthog";
 import { buildPostHogPageviewUrl } from "@/lib/posthog-pageview";
 
 // Captures a $pageview for the initial load and every client-side navigation.
 // Wrapped in <Suspense> because useSearchParams opts the route into dynamic
-// rendering and requires a Suspense boundary.
+// rendering and requires a Suspense boundary. posthog-js is loaded lazily only
+// when the visitor has accepted analytics cookies.
 function PostHogPageView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -24,30 +24,32 @@ function PostHogPageView() {
     );
     if (!url) return;
 
-    // Safe to call regardless of consent: PostHog no-ops when opted out.
-    posthog.capture("$pageview", { $current_url: url });
+    let cancelled = false;
+    // Consent-gated: does not even load posthog-js until the visitor accepts
+    // analytics cookies.
+    getPostHogIfConsented().then(async (posthog) => {
+      if (cancelled || !posthog) return;
+      // Ensure the freshly-loaded instance is opted in before capturing.
+      await applyPostHogConsent();
+      posthog.capture("$pageview", { $current_url: url });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [pathname, searchParams]);
 
   return null;
 }
 
+/** Synchronizes stored consent with PostHog and mounts page-view tracking. */
 export function PostHogProvider() {
   useEffect(() => {
     if (!isPostHogConfigured) return;
 
-    const syncConsent = () => {
-      if (getCookieConsent() === "accepted") {
-        posthog.set_config({ persistence: "localStorage+cookie" });
-        posthog.opt_in_capturing();
-      } else {
-        posthog.opt_out_capturing();
-        posthog.set_config({ persistence: "memory" });
-      }
-    };
-
-    syncConsent();
-    window.addEventListener("cookie_consent_updated", syncConsent);
-    return () => window.removeEventListener("cookie_consent_updated", syncConsent);
+    applyPostHogConsent();
+    window.addEventListener("cookie_consent_updated", applyPostHogConsent);
+    return () =>
+      window.removeEventListener("cookie_consent_updated", applyPostHogConsent);
   }, []);
 
   return (

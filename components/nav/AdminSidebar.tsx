@@ -9,6 +9,7 @@ import {
   Mail,
   Newspaper,
   TrendingUp,
+  MessageSquareQuote,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -21,6 +22,7 @@ const items = [
   { label: "Stats & Reports", href: "/dashboard/admin/stats", icon: BarChart3 },
   { label: "Blog", href: "/dashboard/admin/marketing/blog", icon: Newspaper },
   { label: "Marketing Emails", href: "/dashboard/admin/marketing/emails", icon: Mail },
+  { label: "Reviews", href: "/dashboard/admin/marketing/reviews", icon: MessageSquareQuote },
 ];
 
 export function AdminSidebar() {

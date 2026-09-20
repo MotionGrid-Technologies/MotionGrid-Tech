@@ -23,7 +23,6 @@ import {
   Redo2,
   Bold,
   Italic,
-  Underline,
   Strikethrough,
   Heading2,
   Heading3,
@@ -99,7 +98,6 @@ export const EmailEditor = forwardRef<EmailEditorHandle, EmailEditorProps>(
 const FALLBACK_STATE = {
   isBold: false,
   isItalic: false,
-  isUnderline: false,
   isStrike: false,
   isH2: false,
   isH3: false,
@@ -111,6 +109,7 @@ const FALLBACK_STATE = {
   alignRight: false,
 };
 
+/** Renders formatting controls for the marketing email editor. */
 function Toolbar({ editor }: { editor: Editor | null }) {
   const state =
     useEditorState({
@@ -118,7 +117,6 @@ function Toolbar({ editor }: { editor: Editor | null }) {
       selector: ({ editor: e }) => ({
         isBold: !!e?.isActive("bold"),
         isItalic: !!e?.isActive("italic"),
-        isUnderline: !!e?.isActive("underline"),
         isStrike: !!e?.isActive("strike"),
         isH2: !!e?.isActive("heading", { level: 2 }),
         isH3: !!e?.isActive("heading", { level: 3 }),
@@ -194,13 +192,6 @@ function Toolbar({ editor }: { editor: Editor | null }) {
         onClick={() => chain().toggleItalic().run()}
       >
         <Italic size={15} />
-      </ToolbarButton>
-      <ToolbarButton
-        title="Underline"
-        active={state.isUnderline}
-        onClick={() => chain().toggleUnderline().run()}
-      >
-        <Underline size={15} />
       </ToolbarButton>
       <ToolbarButton
         title="Strikethrough"

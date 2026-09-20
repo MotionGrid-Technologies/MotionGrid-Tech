@@ -1,15 +1,17 @@
 "use client";
 
-import posthog from "posthog-js";
 import { signOut } from "@/app/login/actions";
-import { isPostHogConfigured } from "@/lib/posthog";
+import { getPostHogIfConsented } from "@/lib/posthog-client";
 
+/** Renders a sign-out form that clears analytics state before ending the session. */
 export function SignOutButton() {
   return (
     <form
       action={signOut}
       onSubmit={() => {
-        if (isPostHogConfigured) posthog.reset();
+        getPostHogIfConsented().then((posthog) => {
+          if (posthog) posthog.reset();
+        });
       }}
     >
       <button

@@ -112,11 +112,11 @@ Findings from the 2026-09-06 full-site audit. Knock these out before scaling adm
 - [x] `EmailTemplatesForm.tsx` removed in MotionGrid-only refactor (no longer a concern)
 
 ### P3 — Component reuse & cleanup
-- [-] Unify two Button systems: `components/ui/Button.tsx` vs `components/ui/buttons.tsx` (both files still exist; `Button.tsx` is used by marketing site, `buttons.tsx` elsewhere)
+- [x] Unify two Button systems: `components/ui/buttons.tsx` removed; `components/ui/Button.tsx` is the single source
 - [ ] Create shared `Modal` primitive (7+ modals re-implement the same shell)
 - [ ] Create shared form field components (`Input`, `TextArea`, `Select`, `Field`, `FormError`)
 - [x] Vehicle/settings forms removed in MotionGrid-only refactor (`AddVehicleModal`, `VehicleFormModal`, etc.)
-- [-] Consolidate `StatusBadge.tsx` + `StatusPill.tsx` (both components exist)
+- [x] Consolidate `StatusBadge.tsx` + `StatusPill.tsx` (merged into `StatusBadge.tsx`; `StatusPill.tsx` removed)
 - [x] `HomepageContentForm` removed in MotionGrid-only refactor
 - [x] Dead `/dashboard/admin/*` links in `components/admin/*.tsx` removed with the Autofield components
 
