@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Loader2, Pencil, Search } from "lucide-react";
+import { Eye, Loader2, Pencil, RefreshCw, Search } from "lucide-react";
 import { deriveDefaultKeyword, scoreSeo, type ScoreResult } from "@/lib/seo-scorer";
 import { PageSeoModal } from "@/components/admin/PageSeoModal";
 import type { PageSeoOverride } from "@/lib/page-seo-store";
+import type { PageSeoData } from "@/lib/seo-fetcher";
 
 export interface SeoPage {
   id: string;
@@ -18,6 +19,7 @@ interface PageSeoTableProps {
 }
 
 type ScoreEntry = { result: ScoreResult; keyword: string };
+type LiveEntry = { data?: PageSeoData; error?: string };
 
 function scoreColor(total: number): string {
   if (total >= 85) return "text-emerald-400";
@@ -28,8 +30,11 @@ function scoreColor(total: number): string {
 export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTableProps) {
   const [overrides, setOverrides] = useState<PageSeoOverride[]>(initialOverrides);
   const [scores, setScores] = useState<Record<string, ScoreEntry>>({});
+  const [liveData, setLiveData] = useState<Record<string, LiveEntry>>({});
   const [scoringPath, setScoringPath] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [scoreError, setScoreError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<{
     page: { path: string; label: string };
@@ -40,6 +45,28 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
     return overrides.find((o) => o.path === path) ?? null;
   }
 
+  function scoreFromLive(path: string, data: PageSeoData) {
+    const record = {
+      title: data.title,
+      slug: path.replace(/^\//, ""),
+      excerpt: data.bodyText ? data.bodyText.slice(0, 150) : null,
+      meta_title: data.title,
+      meta_description: data.metaDescription,
+      content: data.bodyText,
+    };
+    const parsed = {
+      h1Count: data.h1Count,
+      h2Count: data.h2Count,
+      headingText: data.headingText,
+      wordCount: data.wordCount,
+      firstParagraph: data.firstParagraph,
+      imgTotal: data.imgTotal,
+      imgWithAlt: data.imgWithAlt,
+    };
+    const keyword = deriveDefaultKeyword(data.title);
+    return { result: scoreSeo(record, keyword, parsed), keyword };
+  }
+
   async function handleScore(path: string) {
     setScoringPath(path);
     setScoreError(null);
@@ -48,32 +75,41 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch page");
 
-      const record = {
-        title: data.title,
-        slug: path.replace(/^\//, ""),
-        excerpt: data.bodyText ? data.bodyText.slice(0, 150) : null,
-        meta_title: data.title,
-        meta_description: data.metaDescription,
-        content: data.bodyText,
-      };
-      const parsed = {
-        h1Count: data.h1Count,
-        h2Count: data.h2Count,
-        headingText: data.headingText,
-        wordCount: data.wordCount,
-        firstParagraph: data.firstParagraph,
-        imgTotal: data.imgTotal,
-        imgWithAlt: data.imgWithAlt,
-      };
-      const keyword = deriveDefaultKeyword(data.title);
-      setScores((prev) => ({
-        ...prev,
-        [path]: { result: scoreSeo(record, keyword, parsed), keyword },
-      }));
+      setLiveData((prev) => ({ ...prev, [path]: { data } }));
+      setScores((prev) => ({ ...prev, [path]: scoreFromLive(path, data) }));
     } catch (e) {
       setScoreError(e instanceof Error ? e.message : "Failed to fetch page");
     } finally {
       setScoringPath(null);
+    }
+  }
+
+  async function handleRefreshAll() {
+    setRefreshing(true);
+    setRefreshError(null);
+    try {
+      const res = await fetch("/api/admin/seo/fetch-pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paths: pages.map((p) => p.path) }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to refresh pages");
+
+      const nextLive: Record<string, LiveEntry> = {};
+      const nextScores: Record<string, ScoreEntry> = {};
+      for (const item of json.results as { path: string; data?: PageSeoData; error?: string }[]) {
+        nextLive[item.path] = item.data ? { data: item.data } : { error: item.error ?? "Unknown error" };
+        if (item.data) {
+          nextScores[item.path] = scoreFromLive(item.path, item.data);
+        }
+      }
+      setLiveData(nextLive);
+      setScores(nextScores);
+    } catch (e) {
+      setRefreshError(e instanceof Error ? e.message : "Failed to refresh pages");
+    } finally {
+      setRefreshing(false);
     }
   }
 
@@ -89,14 +125,26 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => void handleRefreshAll()}
+          disabled={refreshing}
+          className="inline-flex items-center gap-1.5 rounded-[var(--radius-mg)] border border-hairline px-4 py-2 text-sm text-chrome-300 hover:border-chrome-500 hover:text-chrome-100 disabled:opacity-50"
+        >
+          {refreshing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+          Refresh all pages
+        </button>
+      </div>
+
       <div className="overflow-x-auto rounded-[var(--radius-mg-lg)] border border-hairline bg-graphite/40">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[900px] text-left text-sm">
           <thead>
             <tr className="border-b border-hairline text-xs uppercase tracking-wider text-chrome-700">
               <th className="px-4 py-3 font-medium">Page</th>
               <th className="px-4 py-3 font-medium">Path</th>
+              <th className="px-4 py-3 font-medium">Live title</th>
               <th className="px-4 py-3 font-medium">Override title</th>
-              <th className="px-4 py-3 font-medium">Override description</th>
               <th className="px-4 py-3 font-medium">Score</th>
               <th className="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
@@ -104,6 +152,7 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
           <tbody className="divide-y divide-hairline">
             {pages.map((page) => {
               const override = overrideFor(page.path);
+              const live = liveData[page.path];
               const score = scores[page.path];
               const scoring = scoringPath === page.path;
               return (
@@ -111,10 +160,16 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
                   <td className="px-4 py-3 font-medium text-chrome-100">{page.label}</td>
                   <td className="px-4 py-3 font-mono text-xs text-chrome-500">{page.path}</td>
                   <td className="max-w-[220px] truncate px-4 py-3 text-chrome-300">
-                    {override?.meta_title || "—"}
+                    {live?.error ? (
+                      <span className="text-red-400">Error</span>
+                    ) : live?.data ? (
+                      live.data.title
+                    ) : (
+                      "—"
+                    )}
                   </td>
-                  <td className="max-w-[280px] truncate px-4 py-3 text-chrome-500">
-                    {override?.meta_description || "—"}
+                  <td className="max-w-[220px] truncate px-4 py-3 text-chrome-500">
+                    {override?.meta_title || "—"}
                   </td>
                   <td className="px-4 py-3">
                     {score ? (
@@ -160,9 +215,9 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
         </table>
       </div>
 
-      {scoreError && (
+      {(scoreError || refreshError) && (
         <p className="rounded-[var(--radius-mg)] border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
-          {scoreError}
+          {scoreError || refreshError}
         </p>
       )}
 
@@ -174,6 +229,7 @@ export function PageSeoTable({ pages, overrides: initialOverrides }: PageSeoTabl
         <PageSeoModal
           page={editing.page}
           override={editing.override}
+          liveData={liveData[editing.page.path]?.data ?? null}
           onClose={() => setEditing(null)}
           onSaved={handleSaved}
         />

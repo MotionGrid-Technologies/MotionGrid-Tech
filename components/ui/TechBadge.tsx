@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 export function TechBadge({
@@ -22,12 +21,14 @@ export function TechBadge({
       )}
     >
       <div className="flex h-16 w-16 items-center justify-center rounded-full border border-hairline bg-obsidian transition-colors group-hover:border-signal/50">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVGs are served as static files and must not go through the Next.js image optimizer */}
+        <img
           src={logo}
           alt={`${name} logo`}
           width={28}
           height={28}
           className="h-7 w-7 object-contain"
+          loading="lazy"
         />
       </div>
       <div>

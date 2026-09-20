@@ -10,7 +10,7 @@ export const site = {
   tagline: "Where we build tomorrow's software today.",
   description:
     "MotionGrid Technologies designs and builds bespoke software, from client platforms to in-house tools, engineered for precision, performance, and longevity.",
-  url: "https://motiongrid.co.za",
+  url: "https://www.motiongrid.co.za",
   email: "hi@motiongrid.co.za",
 };
 

@@ -8,6 +8,7 @@ import { TechBadge } from "@/components/ui/TechBadge";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Testimonials } from "@/components/sections/Testimonials";
+import { JsonLd } from "@/components/JsonLd";
 import { technologies } from "@/lib/technologies";
 import { industries, site } from "@/lib/site";
 import { buildPageMetadata } from "@/lib/page-metadata";
@@ -29,12 +30,31 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Home() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: site.name,
+          url: site.url,
+          description: site.description,
+          knowsAbout: [
+            "Bespoke software development",
+            "Custom software platforms",
+            "AI development",
+            "Field service software",
+            "Next.js development",
+            "Software engineering",
+            "Workflow automation",
+          ],
+        }}
+      />
+
       <Hero
         eyebrow="Precision software, engineered in-house"
         title={
           <>
-            <span className="mg-chrome-text not-italic">Developing </span>{" "}
-            software moves businesses forward.
+            <span className="mg-chrome-text not-italic">Custom software engineering</span>{" "}
+            for operational businesses.
           </>
         }
         description="MotionGrid Technologies designs custom software platforms that simplify operations and eliminate repetitive work. We build tailor-made platforms that automate workflows, connect teams, and scale with your company"
